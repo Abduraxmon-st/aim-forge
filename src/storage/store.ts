@@ -7,11 +7,14 @@ import {
   type Settings,
 } from "../domain/models";
 import { repository, transact, patchSettings } from "./repository";
+import { achievementCatalog, type AchievementId } from "../domain/achievements";
 type Store = {
   db: Snapshot;
   ready: boolean;
   error: string | null;
   unsaved: Session | null;
+  achievementNotices: AchievementId[];
+  dismissAchievementNotice: (id?: AchievementId) => void;
   hydrate: () => void;
   refresh: () => void;
   save: (s: Session) => Promise<boolean>;
@@ -24,6 +27,13 @@ export const useApp = create<Store>((set, get) => ({
   ready: false,
   error: null,
   unsaved: null,
+  achievementNotices: [],
+  dismissAchievementNotice: (id) =>
+    set((state) => ({
+      achievementNotices: id
+        ? state.achievementNotices.filter((item) => item !== id)
+        : [],
+    })),
   hydrate: () => {
     try {
       const db = repository().read();
@@ -37,26 +47,72 @@ export const useApp = create<Store>((set, get) => ({
         void transact(() =>
           repository().raw() ? repository().read() : repository().write(db, 0),
         )
-          .then((saved) => set({ db: saved, ready: true }))
+          .then((saved) =>
+            set((state) => ({
+              db: saved,
+              ready: true,
+              achievementNotices: state.achievementNotices.filter((id) =>
+                saved.achievements.includes(id),
+              ),
+            })),
+          )
           .catch(() => set({ db, ready: true, error: "storageUnavailable" }));
         return;
       }
-      set({ db, ready: true });
+      set((state) => ({
+        db,
+        ready: true,
+        achievementNotices: state.achievementNotices.filter((id) =>
+          db.achievements.includes(id),
+        ),
+      }));
     } catch (e) {
       set({ ready: true, error: errorKey(e) });
     }
   },
   refresh: () => {
     try {
-      set({ db: repository().read(), error: null });
+      const db = repository().read();
+      set((state) => ({
+        db,
+        error: null,
+        achievementNotices: state.achievementNotices.filter((id) =>
+          db.achievements.includes(id),
+        ),
+      }));
     } catch (e) {
       set({ error: errorKey(e) });
     }
   },
   save: async (s) => {
     try {
-      const db = await transact(() => repository().commit(s));
-      set({ db, unsaved: null, error: null });
+      const { db, awarded } = await transact(() => {
+        const before = new Set(repository().read().achievements);
+        const db = repository().commit(s);
+        return {
+          db,
+          awarded: achievementCatalog
+            .filter(
+              (item) =>
+                db.achievements.includes(item.id) && !before.has(item.id),
+            )
+            .map((item) => item.id),
+        };
+      });
+      // Keep actual save events across App route remounts. Hydration/imports do not enqueue awards.
+      set((state) => ({
+        db,
+        unsaved: null,
+        error: null,
+        achievementNotices: [
+          ...new Set([
+            ...state.achievementNotices.filter((id) =>
+              db.achievements.includes(id),
+            ),
+            ...awarded,
+          ]),
+        ].slice(0, 5),
+      }));
       return true;
     } catch (e) {
       set({ unsaved: s, error: errorKey(e) });

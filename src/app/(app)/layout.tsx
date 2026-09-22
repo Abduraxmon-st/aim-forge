@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "../../styles/app.css";
 import "../../styles/controls.css";
 import "../../styles/training.css";
+import "../../styles/achievements.css";
 export const metadata: Metadata = {
   title: "AimForge — Your training ground",
   description:

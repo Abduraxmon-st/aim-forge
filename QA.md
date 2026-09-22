@@ -13,14 +13,14 @@ This document distinguishes executed automated checks from manual checks that st
 
 On 2026-09-22, Windows, Node.js 22.14.0:
 
-| Command              | Result                                                                 |
-| -------------------- | ---------------------------------------------------------------------- |
-| `npm run type-check` | Passed, strict TypeScript                                              |
-| `npm run lint`       | Passed, no reported lint errors                                        |
-| `npm test`           | **57 passed**, 11 test files                                           |
-| `npm run build`      | Passed; 186 generated Next.js pages/routes, 1,179 precached resources  |
-| `npm run test:seo`   | Passed; 2,615 local artifact checks and 4,978 configured-domain checks |
-| `npm run test:e2e`   | **35 passed**, Chromium 153, approximately 3.7 minutes                 |
+| Command              | Result                                                                |
+| -------------------- | --------------------------------------------------------------------- |
+| `npm run type-check` | Passed, strict TypeScript                                             |
+| `npm run lint`       | Passed, no reported lint errors                                       |
+| `npm test`           | **78 passed**, 12 test files                                          |
+| `npm run build`      | Passed; 186 generated Next.js pages/routes, 1,180 precached resources |
+| `npm run test:seo`   | Passed; 2,615 local artifact checks                                   |
+| `npm run test:e2e`   | **53 passed**, Chromium 153, approximately 4.5 minutes                |
 
 The browser suite completes every 2D and 3D mode, checks real Canvas hits and actual WebGL contexts, restores records after reload, checks pause-time exclusion and eligibility, exercises pointer-lock denial and missing WebGL2, validates language/favorites/routine persistence, rejects invalid imports, checks German mobile layouts, plays offline 2D and initializes offline 3D, enforces a single active training tab, and verifies raw-input fallback and context-loss pausing.
 
@@ -38,7 +38,11 @@ Browser tests verify five languages with JavaScript disabled, a complete Spanish
 
 Visual review covered English desktop home/game pages, a German game guide at 390 pixels and the Russian library at 390 pixels. No clipped headings, missing screenshots, hydration errors or document overflow were observed. The local HTTP server returned 200 for a game guide, robots and sitemap, an XML content type for sitemap, and a real 404 for an unknown game URL.
 
-The static export is about 16.64 MiB uncompressed before ZIP packaging, including all language pages and offline resources. This is asset size, not a claimed frame-rate or latency result.
+The achievements update adds unit coverage for all 25 awards, the five hidden conditions, aborted and zero-active rounds, archive boundaries, backward-compatible profiles and monotonic evidence retention. Browser verification covers empty and earned collections, hidden secret details, real-round unlock notifications, reload persistence, filters, keyboard modal behavior, browser and saved reduced-motion preferences, and German mobile layouts. The card grid follows its container: desktop checks at 620 pixels produce two columns and at 280 pixels produce one, without horizontal overflow.
+
+All seven Settings data dialogs were visually checked across English, German, Russian, Spanish and Uzbek, including 320-pixel mobile layouts. The 35 combinations produced no horizontal overflow or browser page errors. Dialog bodies scroll independently so confirmation and cancellation stay visible in short windows. Automated data-action checks use isolated profiles and verify downloads, preview-before-replacement, recovery snapshots, cancellation, compaction, history clearing, full reset and failed-write preservation. Localized reset and import tests confirm the restored language route and recovery copy survive navigation. No browser alert or confirm call remains in the Settings feature.
+
+The static export is about 16.74 MiB uncompressed before ZIP packaging, including all language pages and offline resources. This is asset size, not a claimed frame-rate or latency result.
 
 ## Manual checks still required
 

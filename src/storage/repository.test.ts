@@ -10,6 +10,10 @@ import {
 import { session, MemoryStorage } from "../test/fixtures";
 import { allTotals, rebuild } from "../domain/rules";
 import { freshSnapshot } from "../domain/models";
+import {
+  achievementCatalog,
+  getAchievementProgress,
+} from "../domain/achievements";
 describe("repository safety", () => {
   it("explicit replacement can recover corrupt data without discarding the original", () => {
     const m = new MemoryStorage(),
@@ -28,6 +32,30 @@ describe("repository safety", () => {
     r.commit(s);
     expect(r.read().dayGoals[s.date]).toBe(180);
   });
+  it("does not complete a routine from a zero-active round", () => {
+    const repo = new Repository(new MemoryStorage());
+    repo.update((db) => {
+      db.routines = [
+        {
+          id: "single",
+          name: "Single",
+          steps: [
+            { scenario: "flick-burst", duration: 60, rounds: 1, rest: 0 },
+          ],
+        },
+      ];
+      db.routineProgress = {
+        routineId: "single",
+        step: 0,
+        completed: 0,
+        activeMs: 0,
+        restUntil: 0,
+      };
+    });
+    repo.commit(session({ activeMs: 0, routineId: "single", routineStep: 0 }));
+    expect(repo.read().routinesCompleted).toBe(0);
+    expect(repo.read().routineProgress?.step).toBe(0);
+  });
   it("saves, validates and restores a result", () => {
     const memory = new MemoryStorage(),
       repo = new Repository(memory),
@@ -43,6 +71,9 @@ describe("repository safety", () => {
     repo.commit(s);
     expect(repo.read().sessions).toHaveLength(1);
     expect(repo.read().streaks.wins).toBe(1);
+    expect(
+      getAchievementProgress(repo.read()).find((a) => a.id === "ten")?.current,
+    ).toBe(1);
   });
   it("preserves valid data when a write fails", () => {
     const memory = new MemoryStorage(),
@@ -76,6 +107,16 @@ describe("repository safety", () => {
     repo.replace(backup);
     expect(repo.read().sessions).toHaveLength(1);
     expect(JSON.parse(m.getItem(BACKUP_KEY)!).sessions).toHaveLength(1);
+  });
+  it("round-trips more than 20 earned achievements and keeps their persistent evidence", () => {
+    const db = freshSnapshot();
+    db.achievements = achievementCatalog.map((a) => a.id);
+    db.achievementStats.modes = ["flick-burst"];
+    const memory = new MemoryStorage(),
+      repo = new Repository(memory);
+    repo.replace(parseBackup(JSON.stringify(db)));
+    expect(repo.read().achievements).toHaveLength(25);
+    expect(repo.read().achievementStats.modes).toEqual(["flick-burst"]);
   });
   it("rejects malformed, oversized and inconsistent imports", () => {
     expect(() => parseBackup("{}")).toThrow();

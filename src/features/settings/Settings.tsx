@@ -2,8 +2,6 @@ import { Select } from "../../components/controls";
 import { useState, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import {
-  Download,
-  Upload,
   ShieldCheck,
   WifiOff,
   Save,
@@ -17,35 +15,25 @@ import {
 import { useApp } from "../../storage/store";
 import {
   type Settings as SettingsType,
-  type Snapshot,
   settingsSchema,
-  freshSnapshot,
 } from "../../domain/models";
-import {
-  repository,
-  transact,
-  parseBackup,
-  compact,
-} from "../../storage/repository";
 import { Heading, Field, CrosshairPreview } from "../../components/ui";
-import { download, sessionsCSV } from "../sharing/share";
 import { prepareOffline, offlineStatus } from "./offline";
 import Calibration from "./Calibration";
+import DataActions from "./DataActions";
 import { num, decimal } from "../../i18n";
 import { useRouteLocale } from "../../components/router";
 import { splitLocalizedPath } from "../../i18n/languages";
 export default function Settings() {
   const routeLocale = useRouteLocale();
   const { t } = useTranslation(),
-    { db, settings, refresh, mutate } = useApp(),
+    { db, settings } = useApp(),
     [overrides, setOverrides] = useState<Partial<SettingsType>>({}),
     [saving, setSaving] = useState(false),
     [message, setMessage] = useState(""),
-    [imported, setImported] = useState<Snapshot | null>(null),
     [offline, setOffline] = useState(false),
     [busy, setBusy] = useState(false),
     [update, setUpdate] = useState<ServiceWorkerRegistration | null>(null),
-    input = useRef<HTMLInputElement>(null),
     writeSequence = useRef(0);
   const draft = { ...db.settings, ...overrides };
   const validation = settingsSchema.safeParse(draft);
@@ -96,12 +84,6 @@ export default function Settings() {
       {t(label)}
     </label>
   );
-  function backup() {
-    download(
-      new Blob([JSON.stringify(db, null, 2)], { type: "application/json" }),
-      "aimforge-backup-" + new Date().toISOString().slice(0, 10) + ".json",
-    );
-  }
   async function save() {
     const parsed = settingsSchema.safeParse(draft);
     if (!parsed.success) {
@@ -450,155 +432,7 @@ export default function Settings() {
           {check("breakReminder", "Break reminders between rounds")}
         </section>
       </div>
-      <section className="panel data-panel">
-        <div className="section-heading">
-          <div>
-            <h2>{t("Your data, in your hands.")}</h2>
-            <p>{t("localPrivacy")}</p>
-          </div>
-          <ShieldCheck size={27} />
-        </div>
-        <div className="action-row">
-          <button className="button" onClick={backup}>
-            <Download size={16} />
-            {t("Export JSON backup")}
-          </button>
-          <button
-            className="button"
-            onClick={() =>
-              download(sessionsCSV(db.sessions), "aimforge-sessions.csv")
-            }
-          >
-            <Download size={16} />
-            {t("Export CSV")}
-          </button>
-          <button className="button" onClick={() => input.current?.click()}>
-            <Upload size={16} />
-            {t("Import backup")}
-          </button>
-          <button
-            className="button"
-            onClick={() =>
-              void mutate((d) => {
-                compact(d, 100);
-              })
-            }
-          >
-            {t("Compact older details")}
-          </button>
-        </div>
-        <input
-          className="sr-only"
-          ref={input}
-          type="file"
-          accept="application/json,.json"
-          onChange={async (e) => {
-            const file = e.target.files?.[0];
-            if (!file) return;
-            try {
-              if (file.size > 6 * 1024 * 1024) throw new Error();
-              setImported(parseBackup(await file.text()));
-              setMessage("");
-            } catch {
-              setMessage(
-                "Invalid or unsupported backup. Existing data was not changed.",
-              );
-            }
-            e.target.value = "";
-          }}
-        />
-        <p className="subtle">{t("retentionSummary")}</p>
-        {imported && (
-          <div className="import-preview">
-            <h3>{t("Import preview")}</h3>
-            <p>
-              {t(
-                "{{count}} retained sessions. This will replace current data.",
-                { count: imported.sessions.length },
-              )}
-            </p>
-            <p>{t("A recovery snapshot of your current data will be kept.")}</p>
-            <div className="action-row">
-              <button className="button" onClick={backup}>
-                {t("Export current data first")}
-              </button>
-              <button
-                className="button primary"
-                onClick={async () => {
-                  if (!confirm(t("Replace all current data with this backup?")))
-                    return;
-                  try {
-                    await transact(() => repository().replace(imported));
-                    refresh();
-                    setOverrides({});
-                    setImported(null);
-                    setMessage("Backup restored.");
-                  } catch {
-                    setMessage("Import failed. Existing data was preserved.");
-                  }
-                }}
-              >
-                {t("Confirm replacement")}
-              </button>
-              <button className="button" onClick={() => setImported(null)}>
-                {t("Cancel")}
-              </button>
-            </div>
-          </div>
-        )}
-        <div className="action-row">
-          <button
-            className="button danger"
-            onClick={() => {
-              if (
-                confirm(t("Clear all training history? Export a backup first."))
-              )
-                void transact(() =>
-                  repository().update((d) => {
-                    const fresh = freshSnapshot();
-                    Object.assign(d, {
-                      ...fresh,
-                      revision: d.revision,
-                      settings: d.settings,
-                      routines: d.routines,
-                      favorites: d.favorites,
-                    });
-                  }, true),
-                )
-                  .then(refresh)
-                  .catch(() => setMessage("storageUnavailable"));
-            }}
-          >
-            {t("Clear training history")}
-          </button>
-          <button
-            className="button danger"
-            onClick={() => {
-              if (confirm(t("Reset all local data, including settings?")))
-                void transact(() => repository().replace(freshSnapshot()))
-                  .then(() => {
-                    refresh();
-                    setOverrides({});
-                  })
-                  .catch(() => setMessage("storageUnavailable"));
-            }}
-          >
-            {t("Reset all data")}
-          </button>
-          <button
-            className="button"
-            onClick={() => {
-              const raw = repository().recovery() || repository().raw();
-              download(
-                new Blob([raw], { type: "application/json" }),
-                "aimforge-recovery.json",
-              );
-            }}
-          >
-            {t("Export recovery data")}
-          </button>
-        </div>
-      </section>
+      <DataActions onReplaced={() => setOverrides({})} onMessage={setMessage} />
       <section className="panel data-panel">
         <div className="section-heading">
           <div>

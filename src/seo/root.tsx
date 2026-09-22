@@ -5,6 +5,7 @@ import "../styles/app.css";
 import "../styles/controls.css";
 import "../styles/training.css";
 import "../styles/seo.css";
+import "../styles/achievements.css";
 
 export const siteRootMetadata: Metadata = {
   applicationName: "AimForge",

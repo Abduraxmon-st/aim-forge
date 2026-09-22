@@ -277,6 +277,49 @@ export const routinePresets: Routine[] = [
     ],
   },
 ];
+/** Compact, monotonic evidence for milestones whose original sessions can expire. */
+export const achievementStatsSchema = z.object({
+  modes: z.array(scenarioId).max(10),
+  palettes: z.array(z.enum(["violet", "cyan", "amber"])).max(3),
+  qualifyingDays: z.array(dateKey).max(7),
+  accuracy: nonneg.max(100),
+  combo: nonneg.int(),
+  tracking: nonneg.max(100),
+  reactionMs: nonneg.nullable(),
+  perfectHits: nonneg.int(),
+  continuousTrackingMs: nonneg,
+  comeback: z.boolean(),
+  parallel: z.boolean(),
+  dimensionDays: z
+    .record(dateKey, z.enum(["2d", "3d"]))
+    .refine((days) => Object.keys(days).length <= 1000),
+  previousSession: z
+    .object({
+      id: z.string().uuid(),
+      startedAt: z.string().datetime(),
+      endedAt: z.string().datetime(),
+      comparisonKey: z.string().max(1500),
+      eligibleStandard: z.boolean(),
+      won: z.boolean(),
+    })
+    .nullable(),
+});
+export type AchievementStats = z.infer<typeof achievementStatsSchema>;
+export const emptyAchievementStats = (): AchievementStats => ({
+  modes: [],
+  palettes: [],
+  qualifyingDays: [],
+  accuracy: 0,
+  combo: 0,
+  tracking: 0,
+  reactionMs: null,
+  perfectHits: 0,
+  continuousTrackingMs: 0,
+  comeback: false,
+  parallel: false,
+  dimensionDays: {},
+  previousSession: null,
+});
 export const snapshotSchema = z
   .object({
     schema: z.literal(2),
@@ -315,7 +358,8 @@ export const snapshotSchema = z
       })
       .nullable(),
     routinesCompleted: nonneg.int(),
-    achievements: z.array(z.string().max(40)).max(20),
+    achievements: z.array(z.string().max(40)).max(100),
+    achievementStats: achievementStatsSchema.default(emptyAchievementStats),
     dailyBest: z.record(
       z.string().max(1600),
       z.object({ score: nonneg, id: z.string(), won: z.boolean() }),
@@ -356,6 +400,7 @@ export function freshSnapshot(): Snapshot {
     routineProgress: null,
     routinesCompleted: 0,
     achievements: [],
+    achievementStats: emptyAchievementStats(),
     dailyBest: {},
     archivedWins: { current: 0, longest: 0 },
     streaks: { current: 0, longest: 0, wins: 0, longestWins: 0 },

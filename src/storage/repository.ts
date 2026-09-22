@@ -18,6 +18,7 @@ import {
   won,
   dateInZone,
 } from "../domain/rules";
+import { achievementSessionEvidence } from "../domain/achievements";
 export const STORAGE_KEY = "aimforge:data:v2",
   BACKUP_KEY = "aimforge:recovery:v2";
 const SOFT_BUDGET = 3 * 1024 * 1024;
@@ -86,6 +87,8 @@ export function compact(
   limit = 500,
   now = new Date().toISOString(),
 ): Snapshot {
+  // Capture detailed milestones and frozen daily goals before retention removes evidence.
+  rebuild(db, now);
   while (db.sessions.length > limit) {
     const s = db.sessions.shift()!;
     const key = s.date + "|" + s.config.input;
@@ -94,6 +97,7 @@ export function compact(
       sessionTotals(s),
     );
     db.archivedWins = advanceWins(db.archivedWins, s);
+    db.achievementStats.previousSession = achievementSessionEvidence(s);
     db.archivedThrough = [db.archivedThrough, s.startedAt].sort().at(-1)!;
   }
   for (let i = 0; i < db.sessions.length - 20; i++)
@@ -215,6 +219,7 @@ export class Repository {
       }
       if (
         session.status === "finished" &&
+        session.activeMs > 0 &&
         session.routineId &&
         db.routineProgress?.routineId === session.routineId &&
         session.routineStep === db.routineProgress.step

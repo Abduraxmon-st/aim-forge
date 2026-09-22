@@ -6,6 +6,7 @@ import {
   type Totals,
   emptyTotals,
 } from "./models";
+import { awardAchievements } from "./achievements";
 export const ratio = (a: number, b: number) => (b > 0 ? (100 * a) / b : null);
 export const median = (values: number[]) => percentile(values, 50);
 export function percentile(values: number[], p: number) {
@@ -122,7 +123,7 @@ export function won(c: Config, m: Metrics) {
   return m.hits >= g.value && (ratio(m.hits, m.shots) ?? 0) >= g.min;
 }
 export function sessionTotals(s: Session): Totals {
-  if (s.status !== "finished") return emptyTotals();
+  if (s.status !== "finished" || s.activeMs <= 0) return emptyTotals();
   return {
     sessions: 1,
     activeMs: s.activeMs,
@@ -211,23 +212,7 @@ export function rebuild(
     wins: wins.current,
     longestWins: wins.longest,
   };
-  const totals = allTotals(db);
-  const earned = new Set(db.achievements);
-  if (totals.sessions >= 1) earned.add("first");
-  if (db.routinesCompleted >= 1) earned.add("routine");
-  if (qualifying.length >= 7) earned.add("seven");
-  if (totals.activeMs >= 3600000) earned.add("hour");
-  if (
-    db.sessions.some(
-      (s) =>
-        s.status === "finished" &&
-        !isTracking(s.config.scenario) &&
-        s.metrics.shots >= 50 &&
-        (ratio(s.metrics.hits, s.metrics.shots) ?? 0) >= 95,
-    )
-  )
-    earned.add("precision");
-  db.achievements = [...earned];
+  awardAchievements(db);
   return db;
 }
 export function coaching(s: Session, history: Session[]) {
