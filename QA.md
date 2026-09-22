@@ -13,13 +13,14 @@ This document distinguishes executed automated checks from manual checks that st
 
 On 2026-09-22, Windows, Node.js 22.14.0:
 
-| Command | Result |
-| --- | --- |
-| `npm run type-check` | Passed, strict TypeScript |
-| `npm run lint` | Passed, no reported lint errors |
-| `npm test` | **43 passed**, 9 test files |
-| `npm run build` | Passed; 24 generated Next.js pages, 202 precached resources |
-| `npm run test:e2e` | **23 passed**, Chromium 153, approximately 3.8 minutes |
+| Command              | Result                                                                 |
+| -------------------- | ---------------------------------------------------------------------- |
+| `npm run type-check` | Passed, strict TypeScript                                              |
+| `npm run lint`       | Passed, no reported lint errors                                        |
+| `npm test`           | **57 passed**, 11 test files                                           |
+| `npm run build`      | Passed; 186 generated Next.js pages/routes, 1,179 precached resources  |
+| `npm run test:seo`   | Passed; 2,615 local artifact checks and 4,978 configured-domain checks |
+| `npm run test:e2e`   | **35 passed**, Chromium 153, approximately 3.7 minutes                 |
 
 The browser suite completes every 2D and 3D mode, checks real Canvas hits and actual WebGL contexts, restores records after reload, checks pause-time exclusion and eligibility, exercises pointer-lock denial and missing WebGL2, validates language/favorites/routine persistence, rejects invalid imports, checks German mobile layouts, plays offline 2D and initializes offline 3D, enforces a single active training tab, and verifies raw-input fallback and context-loss pausing.
 
@@ -31,7 +32,13 @@ The design update additionally verifies custom select keyboard navigation, first
 
 Chart visual QA used a disposable test profile and confirmed a raw `0.32938293829`-style value displays as `0.329`. All twenty game preview images come from the actual running engines; every scenario has two distinct frames. No visual QA dataset is shipped.
 
-The static export is about 3.27 MiB uncompressed before ZIP packaging. This is asset size, not a claimed frame-rate or latency result.
+The multilingual SEO update additionally verifies all 65 public documents and 50 game guides directly from exported HTML without JavaScript. Checks cover document language, substantive localized text, unique titles/descriptions, playable setup links, both actual screenshot files, equivalent language links and JSON-LD. A configured build using the reserved test origin `https://seo-test.example.invalid` passed canonical, hreflang, Open Graph, sitemap and robots checks; this was a local build only. The delivered output was then rebuilt with no domain and passed local noindex checks. No test domain or public deployment is assumed.
+
+Browser tests verify five languages with JavaScript disabled, a complete Spanish guide/setup/round/results flow, a Settings language change preserving saved profile edits after reload, same-game language switching and the German mobile layout. They also scroll every card in both localized and legacy libraries and verify actual Next prefetch responses for all guide/setup destinations. A Windows export filename mismatch found during visual review was fixed with nested RSC segment aliases. Those navigation paths now return no missing-asset responses or page errors.
+
+Visual review covered English desktop home/game pages, a German game guide at 390 pixels and the Russian library at 390 pixels. No clipped headings, missing screenshots, hydration errors or document overflow were observed. The local HTTP server returned 200 for a game guide, robots and sitemap, an XML content type for sitemap, and a real 404 for an unknown game URL.
+
+The static export is about 16.64 MiB uncompressed before ZIP packaging, including all language pages and offline resources. This is asset size, not a claimed frame-rate or latency result.
 
 ## Manual checks still required
 

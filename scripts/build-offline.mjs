@@ -15,8 +15,12 @@ async function walk(dir) {
 // their dot-separated aliases. Include both forms in the static package.
 for (const path of await walk("out")) {
   const portable = path.split(sep).join("/");
-  if (/\/__next\.[^/]+\/__PAGE__\.txt$/.test(portable))
-    await copyFile(path, path.replace(sep + "__PAGE__.txt", ".__PAGE__.txt"));
+  const segment = portable.match(/\/(__next\.[^/]+\/.*\.txt)$/);
+  if (segment) {
+    const alias =
+      portable.slice(0, -segment[1].length) + segment[1].replaceAll("/", ".");
+    await copyFile(path, alias);
+  }
 }
 const paths = await walk("out");
 const files = paths

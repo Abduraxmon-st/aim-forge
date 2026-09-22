@@ -1,3 +1,4 @@
+"use client";
 import { useRef, useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { ChevronLeft, ChevronRight, Images } from "lucide-react";
@@ -63,6 +64,7 @@ export default function GamePreview({
             width={1018}
             height={637}
             loading={eager && number === 1 ? "eager" : "lazy"}
+            fetchPriority={eager && number === 1 ? "high" : "auto"}
             decoding="async"
             draggable={false}
           />

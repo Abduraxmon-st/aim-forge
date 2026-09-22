@@ -13,6 +13,7 @@ npm run type-check
 npm run lint
 npm test
 npm run build       # Next static export + generated offline cache manifest
+npm run test:seo    # audit rendered HTML, language links, sitemap and metadata
 npm run preview     # http://127.0.0.1:4173
 npm run test:e2e    # install Chromium first: npx playwright install chromium
 ```
@@ -32,6 +33,7 @@ npm run test:e2e    # install Chromium first: npx playwright install chromium
 - Seeded daily 2D/3D challenges, editable built-in routines and a routine builder, local milestones, crosshair editor, target palettes, audio controls and manual rotation calibration.
 - JSON backup with validated replacement preview, recovery export, CSV export, locally rendered PNG results, copyable text, native sharing when supported and bounded friend-challenge URLs.
 - Complete English, Spanish, German, Russian and Uzbek Latin UI catalogs. Localization parity and interpolation placeholders have automated coverage. Browser preferences select a supported language; this does not affect date grouping.
+- Search-ready public home, training library, help and ten game guides in each language: 65 public pages, including 50 individual game pages. Guides include real screenshots, controls, scoring, device requirements and practice tips in the initial HTML. Language links keep the same game; URL language takes priority over saved preferences.
 - Installable static PWA with explicit offline preparation. Both engines and all generated route/chunk resources are cached when preparation completes. No unvisited engine is claimed available before that.
 
 No accounts, global rankings, fabricated histories, online player counts, cloud sync, replay storage or competitive verification are provided. Empty profiles start empty. AimForge is a working name; no domain or trademark availability claim is made.
@@ -39,6 +41,8 @@ No accounts, global rankings, fabricated histories, online player counts, cloud 
 ## Architecture
 
 `src/app` provides the Next route entrypoints and client shell. All known routes are generated at build time. Scenario setup has ten static paths; arena and result identifiers travel as validated query parameters so static hosting can refresh these pages. Missing/compacted result IDs have an explicit empty state.
+
+`src/seo` provides authored translations, public pages, structured data, metadata and sitemap generation. Existing app URLs remain available in the `(app)` route group. The five explicit language roots under `(site)` set the correct HTML language during static rendering and include localized play routes. Each localized tree has an isolated translation instance, preventing parallel static renders from leaking languages into each other. Public content renders before browser storage loads; personal progress remains client-only and excluded from search indexing.
 
 `src/engine/core` owns the state machine, monotonic clock, frame scheduler, audio lifecycle and input. `canvas2d` and `three3d` own rendering, spawning, movement and collision detection. The Three.js engine and analytics screen are loaded on demand. React renders pages and HUD snapshots at about 13 Hz; it does not drive the simulation. Zustand contains only low-frequency application state.
 
@@ -107,7 +111,9 @@ JSON imports are capped at 6 MiB, schema/range/ID/consistency validated, preview
 
 ## Static deployment
 
-Build with `npm ci && npm run build`, then publish `out/` at the origin root. Next emits directory-style `index.html` routes (`trailingSlash: true`). Configure the host to serve each directory index and use `404.html` for unknown routes. Known routes refresh without a server rewrite. The source `_redirects` fallback supports hosts that use SPA fallbacks; prefer native directory indexes. Query strings on `/arena/` and `/results/` do not require a backend. HTTPS is required for production pointer lock/service workers and browser clipboard capabilities. Sites configuration, when used, declares `static.directory: "out"`.
+The delivered app remains local. For a future authorized release, build with `npm ci && npm run build`, then publish `out/` at the origin root. Next emits directory-style `index.html` routes (`trailingSlash: true`). Configure the host to serve each directory index and return HTTP 404 with `404.html` for unknown routes. Known routes refresh without a server rewrite. The source `_redirects` uses a 404 fallback; do not replace missing pages with a 200-status home page. Query strings on arena/results routes do not require a backend. HTTPS is required for production service workers and browser clipboard capabilities. Sites configuration, when used, declares `static.directory: "out"`.
+
+Set the optional `SITE_URL` build variable to the real HTTPS origin before a public release. Until then, public pages have `noindex`, robots disallows crawling, and the sitemap is empty. With a configured domain, the build enables public indexing and emits absolute canonical URLs, reciprocal language alternatives, social images and a 65-page sitemap. Personal app routes stay `noindex`. See [SEO.md](SEO.md) for configuration, URL coverage and verification. Setting a domain or building does not publish anything.
 
 Official implementation references: [Next.js static exports](https://nextjs.org/docs/app/guides/static-exports), [Three.js Raycaster](https://threejs.org/docs/pages/Raycaster.html), [WebGLRenderer](https://threejs.org/docs/pages/WebGLRenderer.html), [MDN pointer lock](https://developer.mozilla.org/en-US/docs/Web/API/Pointer_Lock_API).
 

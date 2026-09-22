@@ -1,5 +1,6 @@
 import { scenarioId } from "../domain/models";
 import { catalog } from "../engine/scenarios/catalog";
+import { localizeHref, splitLocalizedPath } from "../i18n/languages";
 type Tool = {
   name: string;
   description: string;
@@ -49,7 +50,12 @@ export function registerTools() {
         const id = scenarioId.parse(
           (input as { scenario?: unknown })?.scenario,
         );
-        location.assign("/setup/" + id + "/");
+        location.assign(
+          localizeHref(
+            "/setup/" + id + "/",
+            splitLocalizedPath(location.pathname).locale,
+          ),
+        );
         return { opened: id, started: false };
       },
     },

@@ -32,7 +32,10 @@ import { download, sessionsCSV } from "../sharing/share";
 import { prepareOffline, offlineStatus } from "./offline";
 import Calibration from "./Calibration";
 import { num, decimal } from "../../i18n";
+import { useRouteLocale } from "../../components/router";
+import { splitLocalizedPath } from "../../i18n/languages";
 export default function Settings() {
+  const routeLocale = useRouteLocale();
   const { t } = useTranslation(),
     { db, settings, refresh, mutate } = useApp(),
     [overrides, setOverrides] = useState<Partial<SettingsType>>({}),
@@ -170,8 +173,20 @@ export default function Settings() {
           <Field label={t("Language")}>
             <Select
               value={draft.language}
-              onChange={(e) => {
+              onChange={async (e) => {
                 const language = e.target.value as SettingsType["language"];
+                if (routeLocale && language !== routeLocale) {
+                  setOverrides((current) => ({ ...current, language }));
+                  if (await persist({ language })) {
+                    const path = splitLocalizedPath(
+                      window.location.pathname,
+                    ).path;
+                    window.location.assign(
+                      `/${language}${path === "/" ? "/" : path + "/"}${window.location.search}`,
+                    );
+                  }
+                  return;
+                }
                 patch({ language });
               }}
             >

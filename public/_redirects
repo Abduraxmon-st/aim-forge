@@ -1,1 +1,2 @@
-/* /index.html 200
+# Serve exported paths directly. Unknown paths must retain a real 404 status.
+/* /404.html 404

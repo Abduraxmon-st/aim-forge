@@ -1,4 +1,13 @@
-import App from "../App";
+import App from "../../App";
+import { privateMetadata } from "../../../seo/metadata";
+import { legacyRouteTitle } from "../../../seo/route-pages";
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string[] }>;
+}) {
+  return privateMetadata("en", legacyRouteTitle("en", (await params).slug));
+}
 export const dynamicParams = false;
 export function generateStaticParams() {
   return [

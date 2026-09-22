@@ -23,6 +23,7 @@ import Home from "../features/home/Home";
 import Library from "../features/training/Library";
 import Setup from "../features/training/Setup";
 import { registerTools } from "./webmcp";
+import { splitLocalizedPath, type Locale } from "../i18n/languages";
 const Arena = lazy(() => import("../features/training/Arena"));
 const Results = lazy(() => import("../features/results/Results"));
 const Dashboard = lazy(() => import("../features/analytics/Dashboard"));
@@ -44,10 +45,10 @@ const nav = [
   ["/routines", "Routines", ListVideo],
   ["/achievements", "Achievements", Trophy],
 ] as const;
-export default function App() {
+export default function App({ locale }: { locale?: Locale }) {
   const { t } = useTranslation(),
     { db, ready, error, hydrate, refresh } = useApp(),
-    path = usePathname().replace(/\/$/, "") || "/",
+    path = splitLocalizedPath(usePathname() || "/").path,
     main = useRef<HTMLElement>(null);
   useEffect(() => {
     hydrate();
@@ -62,12 +63,12 @@ export default function App() {
     };
   }, [hydrate, refresh]);
   useEffect(() => {
-    void i18n.changeLanguage(db.settings.language);
-    document.documentElement.lang = db.settings.language;
+    void i18n.changeLanguage(locale ?? db.settings.language);
+    document.documentElement.lang = locale ?? db.settings.language;
     document.documentElement.dataset.motion = db.settings.reducedMotion
       ? "reduced"
       : "normal";
-  }, [db.settings.language, db.settings.reducedMotion]);
+  }, [locale, db.settings.language, db.settings.reducedMotion]);
   useEffect(() => {
     main.current?.focus({ preventScroll: true });
     window.scrollTo(0, 0);
@@ -189,7 +190,9 @@ export default function App() {
           </Suspense>
           {path !== "/arena" && (
             <footer>
-              {t("Built for focused practice.")}
+              <a href={`/${locale ?? db.settings.language}/training/`}>
+                {t("Built for focused practice.")}
+              </a>
               <span>{t("All results are local and unverified.")}</span>
             </footer>
           )}

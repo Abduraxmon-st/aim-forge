@@ -5,7 +5,7 @@ import { Search, Star, ArrowUpRight, Crosshair, Move, Zap } from "lucide-react";
 import { useApp } from "../../storage/store";
 import { catalog } from "../../engine/scenarios/catalog";
 import { Heading, Badge } from "../../components/ui";
-import { Link } from "../../components/router";
+import { Link, useRouteLocale } from "../../components/router";
 import GamePreview from "./GamePreview";
 export default function Library() {
   const { t } = useTranslation(),
@@ -15,6 +15,7 @@ export default function Library() {
     [skill, setSkill] = useState("all"),
     [difficulty, setDifficulty] = useState("beginner"),
     [favorites, setFavorites] = useState(false);
+  const locale = useRouteLocale() ?? db.settings.language;
   const items = catalog.filter(
     (s) =>
       (dim === "all" || s.dimension === dim) &&
@@ -138,7 +139,7 @@ export default function Library() {
                 </div>
                 <h3>
                   <I size={19} aria-hidden="true" />
-                  {t(s.id)}
+                  <Link to={`/${locale}/games/${s.id}/`}>{t(s.id)}</Link>
                 </h3>
                 <p>{t(s.id + "Desc")}</p>
                 <Link

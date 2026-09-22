@@ -11,6 +11,7 @@
     "lint": "eslint src e2e",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
+    "test:seo": "node scripts/check-seo.mjs",
     "format": "prettier --write src e2e scripts *.ts *.mjs *.json *.md"
   },
   "license": "UNLICENSED",
@@ -29,6 +30,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@next/env": "16.3.5",
     "@playwright/test": "^1.63.0",
     "@tailwindcss/postcss": "^4.3.3",
     "@testing-library/jest-dom": "^7.0.1",
