@@ -1,0 +1,14 @@
+node_modules/
+dist/
+.next/
+out/
+*.tsbuildinfo
+.sites-runtime/
+playwright-report/
+test-results/
+*.tar.gz
+*.log
+.env*
+!.env.example
+
+.qa/
