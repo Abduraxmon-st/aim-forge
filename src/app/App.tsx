@@ -13,7 +13,6 @@ import {
   Trophy,
   Settings as SettingsIcon,
   CircleHelp,
-  ShieldCheck,
 } from "lucide-react";
 import i18n from "../i18n";
 import { Link, NavLink } from "../components/router";
@@ -115,11 +114,6 @@ export default function App() {
           ))}
         </nav>
         <div className="sidebar-bottom">
-          <div className="local-card">
-            <ShieldCheck size={18} />
-            <b>{t("Your progress. Your device.")}</b>
-            <small>{t("No account. No distractions.")}</small>
-          </div>
           <NavLink to="/settings" title={t("Settings")}>
             <SettingsIcon size={18} />
             {t("Settings")}

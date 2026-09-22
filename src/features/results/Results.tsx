@@ -261,11 +261,11 @@ export default function Results() {
               )}
             <div>
               <dt>{t("Vertical field of view")}</dt>
-              <dd>{s.config.fov}°</dd>
+              <dd>{num(s.config.fov, 3)}°</dd>
             </div>
             <div>
               <dt>{t("Sensitivity")}</dt>
-              <dd>{s.config.sensitivity}°</dd>
+              <dd>{num(s.config.sensitivity, 3)}°</dd>
             </div>
             <div>
               <dt>{t("Run type")}</dt>

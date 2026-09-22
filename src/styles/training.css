@@ -1,0 +1,239 @@
+.library-grid.training-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+}
+.mode-card.training-card {
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid #30313d;
+  border-radius: 13px;
+  background: #191a23;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
+}
+.training-card:hover {
+  border-color: #5b4b75;
+  box-shadow: 0 8px 24px #0002;
+}
+.game-preview {
+  position: relative;
+  min-width: 0;
+  width: 100%;
+  border-bottom: 1px solid #30313d;
+  background: #11141f;
+}
+.game-preview-track {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  overscroll-behavior-x: contain;
+  aspect-ratio: 16 / 9;
+}
+.game-preview-track::-webkit-scrollbar {
+  display: none;
+}
+.game-preview-track:focus-visible {
+  outline: 2px solid #b39aef;
+  outline-offset: -3px;
+}
+.game-preview-track img {
+  width: 100%;
+  height: 100%;
+  flex: 0 0 100%;
+  object-fit: cover;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  user-select: none;
+}
+.game-preview-shade {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    #06081050 0%,
+    transparent 28%,
+    transparent 62%,
+    #090b16df 100%
+  );
+}
+.game-dimension {
+  position: absolute;
+  top: 15px;
+  left: 16px;
+  border: 1px solid #ffffff26;
+  border-radius: 6px;
+  background: #1a1b2baa;
+  backdrop-filter: blur(8px);
+  font-size: 0.64rem;
+  font-weight: 650;
+  letter-spacing: 0.8px;
+  color: #d3cdeb;
+  padding: 4px 8px;
+}
+.game-preview-favorite {
+  position: absolute;
+  top: 11px;
+  right: 12px;
+}
+.game-preview-favorite .icon-button {
+  width: 32px;
+  height: 32px;
+  background: #171828bd;
+  border: 1px solid #ffffff1c;
+  border-radius: 8px;
+  color: #ada6c4;
+  backdrop-filter: blur(8px);
+}
+.game-preview-favorite .icon-button:hover,
+.game-preview-favorite .icon-button[aria-pressed="true"] {
+  background: #39304e;
+  border-color: #9d7dce77;
+  color: #d2b9ff;
+}
+.gallery-arrow {
+  display: grid;
+  place-items: center;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 32px;
+  height: 36px;
+  border: 1px solid #ffffff29;
+  border-radius: 8px;
+  background: #141523ad;
+  color: #e2d8f6;
+  backdrop-filter: blur(8px);
+  opacity: 0;
+  transition:
+    opacity 0.15s,
+    background 0.15s;
+}
+.gallery-arrow.previous {
+  left: 13px;
+}
+.gallery-arrow.next {
+  right: 13px;
+}
+.game-preview:hover .gallery-arrow,
+.game-preview:focus-within .gallery-arrow {
+  opacity: 1;
+}
+.gallery-arrow:hover {
+  background: #40324fe0;
+}
+.gallery-footer {
+  display: flex;
+  align-items: center;
+  position: absolute;
+  left: 17px;
+  right: 17px;
+  bottom: 12px;
+  gap: 10px;
+  pointer-events: none;
+}
+.gallery-caption {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #a29bb7;
+  font-size: 0.62rem;
+  letter-spacing: 0.2px;
+  flex: 1;
+}
+.gallery-dots {
+  display: flex;
+  gap: 2px;
+  pointer-events: auto;
+}
+.gallery-dots button {
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  border-radius: 4px;
+}
+.gallery-dots button span {
+  width: 5px;
+  height: 5px;
+  border-radius: 4px;
+  background: #787086;
+  transition:
+    width 0.2s,
+    background 0.2s;
+}
+.gallery-dots button.selected span {
+  width: 17px;
+  background: #c4b1ef;
+}
+.gallery-count {
+  flex: 1;
+  text-align: right;
+  font-size: 0.61rem;
+  font-variant-numeric: tabular-nums;
+  color: #aaa0c1;
+}
+.training-card-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  padding: 22px 24px 0;
+}
+.training-card .badges {
+  gap: 6px;
+}
+.training-card .badge {
+  padding: 2px 7px;
+  font-size: 0.61rem;
+  border-color: #373244;
+  background: #24212f;
+  color: #a99ebc;
+}
+.training-card h3 {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 14px 0 9px;
+  font-size: 1.24rem;
+  line-height: 1.35;
+}
+.training-card h3 svg {
+  color: #b49ae8;
+  flex-shrink: 0;
+}
+.training-card-content > p {
+  color: #9194a9;
+  font-size: 0.81rem;
+  line-height: 1.75;
+  margin-bottom: 23px;
+}
+.training-card .card-footer {
+  margin-top: auto;
+  padding: 17px 0 19px;
+  border-top: 1px solid #2e2d3a;
+  color: #c9b8f4;
+  font-size: 0.78rem;
+  font-weight: 550;
+}
+.training-card .card-footer:hover {
+  color: #e5d8ff;
+}
+@media (max-width: 650px) {
+  .library-grid.training-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  .training-card-content {
+    padding: 20px 21px 0;
+  }
+  .gallery-arrow {
+    opacity: 1;
+  }
+}
+@media (hover: none) {
+  .gallery-arrow {
+    opacity: 1;
+  }
+}

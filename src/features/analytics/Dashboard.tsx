@@ -1,9 +1,10 @@
+import { Select, DatePicker, RadioGroup } from "../../components/controls";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   ResponsiveContainer,
-  LineChart,
-  Line,
+  AreaChart,
+  Area,
   CartesianGrid,
   XAxis,
   YAxis,
@@ -27,6 +28,7 @@ import {
 import { emptyTotals } from "../../domain/models";
 import { Heading, Stat, Empty, SessionTable } from "../../components/ui";
 import { num, duration } from "../../i18n";
+import { ChartTooltip, chartColors } from "../../components/charts";
 export default function Dashboard() {
   const { t } = useTranslation(),
     { db } = useApp(),
@@ -104,39 +106,36 @@ export default function Dashboard() {
         eyebrow={t("MEASURE WHAT MATTERS")}
         description={t("Real practice. Measurable progress.")}
         action={
-          <select
+          <Select
             aria-label={t("Input")}
             value={input}
             onChange={(e) => setInput(e.target.value)}
           >
             <option value="mouse">{t("mouse")}</option>
             <option value="touch">{t("touch")}</option>
-          </select>
+          </Select>
         }
       />
       <div className="filter-bar">
-        <div className="segmented">
-          {["day", "week", "month", "year", "custom"].map((r) => (
-            <button
-              className={range === r ? "selected" : ""}
-              key={r}
-              onClick={() => setRange(r)}
-            >
-              {t(r)}
-            </button>
-          ))}
-        </div>
+        <RadioGroup
+          label={t("control-dateRange")}
+          value={range}
+          onValueChange={setRange}
+          variant="segmented"
+          options={["day", "week", "month", "year", "custom"].map((r) => ({
+            value: r,
+            label: t(r),
+          }))}
+        />
         {range === "custom" && (
           <>
-            <input
+            <DatePicker
               aria-label={t("From date")}
-              type="date"
               value={from}
               onChange={(e) => setFrom(e.target.value)}
             />
-            <input
+            <DatePicker
               aria-label={t("To date")}
-              type="date"
               value={to}
               onChange={(e) => setTo(e.target.value)}
             />
@@ -195,7 +194,7 @@ export default function Dashboard() {
                   {t("Only compatible, uninterrupted benchmarks share a line.")}
                 </p>
               </div>
-              <select
+              <Select
                 aria-label={t("Metric")}
                 value={metric}
                 onChange={(e) => setMetric(e.target.value)}
@@ -203,9 +202,9 @@ export default function Dashboard() {
                 <option value="score">{t("Score")}</option>
                 <option value="accuracy">{t("Accuracy / tracking")}</option>
                 <option value="response">{t("Response / acquisition")}</option>
-              </select>
+              </Select>
             </div>
-            <select
+            <Select
               className="series-picker"
               aria-label={t("Comparable configuration")}
               value={selected ?? ""}
@@ -220,7 +219,7 @@ export default function Dashboard() {
                   </option>
                 );
               })}
-            </select>
+            </Select>
             {series.length ? (
               <div
                 className="chart"
@@ -228,31 +227,93 @@ export default function Dashboard() {
                 aria-label={t("Trend chart in {{unit}}", { unit })}
               >
                 <ResponsiveContainer width="100%" height={260}>
-                  <LineChart data={series}>
-                    <CartesianGrid stroke="#30303d" vertical={false} />
-                    <XAxis dataKey="run" stroke="#a1a0b4" fontSize={12} />
-                    <YAxis stroke="#a1a0b4" fontSize={12} width={55} />
-                    <Tooltip
-                      contentStyle={{
-                        background: "#20202b",
-                        borderColor: "#48445f",
-                        color: "#eee",
-                      }}
-                      formatter={(v) => [
-                        num(Number(v), 1) + " " + unit,
-                        t(metric),
-                      ]}
+                  <AreaChart
+                    data={series}
+                    margin={{ top: 18, right: 18, bottom: 8, left: 0 }}
+                  >
+                    <defs>
+                      <linearGradient
+                        id="performance-fill"
+                        x1="0"
+                        y1="0"
+                        x2="0"
+                        y2="1"
+                      >
+                        <stop
+                          offset="0%"
+                          stopColor="#af9bf3"
+                          stopOpacity={0.2}
+                        />
+                        <stop
+                          offset="100%"
+                          stopColor="#af9bf3"
+                          stopOpacity={0}
+                        />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid
+                      stroke="#30313d"
+                      strokeDasharray="3 6"
+                      vertical={false}
                     />
-                    <Line
+                    <XAxis
+                      dataKey="run"
+                      tick={{ fill: "#85889f", fontSize: 11 }}
+                      axisLine={false}
+                      tickLine={false}
+                      tickMargin={12}
+                      tickFormatter={(v) => num(Number(v))}
+                      minTickGap={25}
+                    />
+                    <YAxis
+                      tick={{ fill: "#85889f", fontSize: 11 }}
+                      axisLine={false}
+                      tickLine={false}
+                      tickMargin={10}
+                      width={58}
+                      tickFormatter={(v) => num(Number(v), 3)}
+                      domain={
+                        metric === "accuracy" ? [0, 100] : ["auto", "auto"]
+                      }
+                    />
+                    <Tooltip
+                      cursor={{ stroke: "#81769f", strokeDasharray: "3 4" }}
+                      content={(props) => (
+                        <ChartTooltip
+                          {...props}
+                          unit={unit}
+                          labelPrefix={t("Run")}
+                        />
+                      )}
+                    />
+                    <Area
                       dataKey="value"
+                      name={t(
+                        metric === "score"
+                          ? "Score"
+                          : metric === "accuracy"
+                            ? "Accuracy / tracking"
+                            : "Response / acquisition",
+                      )}
                       type="monotone"
-                      stroke="#b09afa"
-                      strokeWidth={2.5}
-                      dot={{ r: 4, fill: "#b09afa" }}
+                      stroke="#b5a2f8"
+                      fill="url(#performance-fill)"
+                      strokeWidth={2}
+                      dot={
+                        series.length === 1
+                          ? { r: 4, fill: "#b5a2f8", strokeWidth: 0 }
+                          : false
+                      }
+                      activeDot={{
+                        r: 5,
+                        fill: "#c1b0ff",
+                        stroke: "#191a23",
+                        strokeWidth: 3,
+                      }}
                       connectNulls={false}
                       isAnimationActive={false}
                     />
-                  </LineChart>
+                  </AreaChart>
                 </ResponsiveContainer>
               </div>
             ) : (
@@ -278,7 +339,7 @@ export default function Dashboard() {
                   {series.map((row) => (
                     <tr key={row.run}>
                       <td>{row.run}</td>
-                      <td>{num(row.value, 1)}</td>
+                      <td>{num(row.value, 3)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -293,16 +354,43 @@ export default function Dashboard() {
               </p>
               <div role="img" aria-label={t("Training minutes by day")}>
                 <ResponsiveContainer width="100%" height={230}>
-                  <BarChart data={bars}>
-                    <CartesianGrid stroke="#30303d" vertical={false} />
-                    <XAxis dataKey="date" stroke="#a1a0b4" fontSize={11} />
-                    <YAxis stroke="#a1a0b4" fontSize={11} />
-                    <Tooltip contentStyle={{ background: "#20202b" }} />
+                  <BarChart
+                    data={bars}
+                    margin={{ top: 24, right: 8, bottom: 8, left: 0 }}
+                    barCategoryGap="32%"
+                  >
+                    <CartesianGrid
+                      stroke="#30313d"
+                      strokeDasharray="3 6"
+                      vertical={false}
+                    />
+                    <XAxis
+                      dataKey="date"
+                      tick={{ fill: "#85889f", fontSize: 11 }}
+                      axisLine={false}
+                      tickLine={false}
+                      tickMargin={12}
+                      minTickGap={25}
+                    />
+                    <YAxis
+                      tick={{ fill: "#85889f", fontSize: 11 }}
+                      axisLine={false}
+                      tickLine={false}
+                      width={52}
+                      tickFormatter={(v) => num(Number(v), 3)}
+                    />
+                    <Tooltip
+                      cursor={{ fill: "#a698d4", fillOpacity: 0.05 }}
+                      content={(props) => (
+                        <ChartTooltip {...props} unit={t("min")} />
+                      )}
+                    />
                     <Bar
                       dataKey="minutes"
                       name={t("min")}
-                      fill="#9a88e5"
-                      radius={[4, 4, 0, 0]}
+                      fill="#a291dd"
+                      maxBarSize={36}
+                      radius={[5, 5, 0, 0]}
                       isAnimationActive={false}
                     />
                   </BarChart>
@@ -312,7 +400,7 @@ export default function Dashboard() {
                 <summary>{t("View data table")}</summary>
                 {bars.map((d) => (
                   <p key={d.date}>
-                    {d.date}: {num(d.minutes, 1)} {t("min")}
+                    {d.date}: {num(d.minutes, 3)} {t("min")}
                   </p>
                 ))}
               </details>
@@ -326,27 +414,49 @@ export default function Dashboard() {
                     <Pie
                       data={dist}
                       dataKey="value"
-                      innerRadius={52}
-                      outerRadius={80}
+                      innerRadius={65}
+                      outerRadius={84}
                       paddingAngle={3}
+                      cornerRadius={5}
+                      stroke="none"
                       isAnimationActive={false}
                     >
                       {dist.map((d, i) => (
                         <Cell
                           key={d.name}
-                          fill={
-                            [
-                              "#aa93f2",
-                              "#70b8d6",
-                              "#e8bc8e",
-                              "#94cbb5",
-                              "#cf97b5",
-                            ][i % 5]
-                          }
+                          fill={chartColors[i % chartColors.length]}
                         />
                       ))}
                     </Pie>
-                    <Tooltip contentStyle={{ background: "#20202b" }} />
+                    <text
+                      x="50%"
+                      y="47%"
+                      textAnchor="middle"
+                      dominantBaseline="middle"
+                      fill="#e1ddec"
+                      fontSize={23}
+                      fontWeight={600}
+                    >
+                      {num(
+                        dist.reduce((sum, d) => sum + d.value, 0),
+                        3,
+                      )}
+                    </text>
+                    <text
+                      x="50%"
+                      y="59%"
+                      textAnchor="middle"
+                      dominantBaseline="middle"
+                      fill="#85889f"
+                      fontSize={11}
+                    >
+                      {t("min")}
+                    </text>
+                    <Tooltip
+                      content={(props) => (
+                        <ChartTooltip {...props} unit={t("min")} />
+                      )}
+                    />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
@@ -355,16 +465,10 @@ export default function Dashboard() {
                   <span key={d.name}>
                     <i
                       style={{
-                        background: [
-                          "#aa93f2",
-                          "#70b8d6",
-                          "#e8bc8e",
-                          "#94cbb5",
-                          "#cf97b5",
-                        ][i % 5],
+                        background: chartColors[i % chartColors.length],
                       }}
                     />
-                    {d.name} · {num(d.value, 1)} {t("min")}
+                    {d.name} · {num(d.value, 3)} {t("min")}
                   </span>
                 ))}
               </div>

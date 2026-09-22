@@ -15,7 +15,7 @@ type Store = {
   hydrate: () => void;
   refresh: () => void;
   save: (s: Session) => Promise<boolean>;
-  settings: (s: Partial<Settings>) => Promise<void>;
+  settings: (s: Partial<Settings>) => Promise<boolean>;
   mutate: (fn: (d: Snapshot) => void) => Promise<void>;
   clearError: () => void;
 };
@@ -67,8 +67,10 @@ export const useApp = create<Store>((set, get) => ({
     try {
       const db = await patchSettings(patch);
       set({ db, error: null });
+      return true;
     } catch (e) {
       set({ error: errorKey(e) });
+      return false;
     }
   },
   mutate: async (fn) => {

@@ -11,6 +11,8 @@ const mime = {
   ".txt": "text/plain",
   ".svg": "image/svg+xml",
   ".png": "image/png",
+  ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
   ".webmanifest": "application/manifest+json",
   ".woff2": "font/woff2",
 };

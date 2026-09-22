@@ -5,13 +5,182 @@ async function openRound(page: Page, id: string) {
   await expect(
     page.getByRole("button", { name: "Enter training" }),
   ).toBeVisible();
-  const thirty = page.getByRole("button", { name: "30 s", exact: true });
+  const thirty = page.getByRole("radio", { name: "30 s", exact: true });
   if (await thirty.isVisible()) await thirty.click();
   await page.getByRole("button", { name: "Enter training" }).click();
   await expect(
     page.getByRole("button", { name: "Start round", exact: true }),
   ).toBeVisible();
 }
+
+test("settings save automatically, survive navigation, and reject invalid edits", async ({
+  page,
+}) => {
+  await page.goto("/settings/");
+  await page
+    .getByRole("textbox", { name: "Nickname (optional)" })
+    .fill("My training profile");
+  await page
+    .getByRole("spinbutton", { name: "Sensitivity" })
+    .fill("0.32938293829");
+  await expect(
+    page.getByRole("spinbutton", { name: "Sensitivity" }),
+  ).toHaveValue("0.329");
+  await page
+    .getByRole("checkbox", { name: "Show measured FPS / frame time" })
+    .check();
+  await page.getByRole("combobox", { name: "Target palette" }).click();
+  await page.getByRole("option", { name: "Cyan", exact: true }).click();
+  await expect(page.locator(".settings-save-state")).toHaveText(
+    "Saved on this device",
+  );
+  await page
+    .getByRole("link", { name: "Training library", exact: true })
+    .click();
+  await page
+    .getByRole("link", { name: "Settings", exact: true })
+    .first()
+    .click();
+  await expect(
+    page.getByRole("textbox", { name: "Nickname (optional)" }),
+  ).toHaveValue("My training profile");
+  await page.reload();
+  await expect(
+    page.getByRole("spinbutton", { name: "Sensitivity" }),
+  ).toHaveValue("0.329");
+  await expect(
+    page.getByRole("checkbox", { name: "Show measured FPS / frame time" }),
+  ).toBeChecked();
+  await expect(
+    page.getByRole("combobox", { name: "Target palette" }),
+  ).toHaveText("Cyan");
+  await page
+    .getByRole("textbox", { name: /Training timezone/ })
+    .fill("Invalid/Timezone");
+  await expect(
+    page.getByRole("alert").filter({ hasText: "Check the settings" }),
+  ).toBeVisible();
+  await page
+    .getByRole("textbox", { name: "Nickname (optional)" })
+    .fill("Valid edit still saves");
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () =>
+          JSON.parse(localStorage.getItem("aimforge:data:v2")!).settings
+            .nickname,
+      ),
+    )
+    .toBe("Valid edit still saves");
+  await page.reload();
+  await expect(
+    page.getByRole("textbox", { name: /Training timezone/ }),
+  ).not.toHaveValue("Invalid/Timezone");
+  await expect(
+    page.getByRole("textbox", { name: "Nickname (optional)" }),
+  ).toHaveValue("Valid edit still saves");
+});
+
+test("custom filters support keyboard selection and calendar dates on mobile", async ({
+  page,
+}) => {
+  await page.goto("/training/");
+  const dimension = page.getByRole("combobox", { name: "Dimension" });
+  await dimension.focus();
+  await dimension.press("ArrowDown");
+  await dimension.press("End");
+  await dimension.press("Enter");
+  await expect(page.locator(".library-grid article")).toHaveCount(5);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/history/");
+  await page.getByRole("button", { name: "From date", exact: true }).click();
+  const calendar = page.getByRole("dialog", { name: "From date", exact: true });
+  await expect(calendar).toBeVisible();
+  const bounds = await calendar.boundingBox();
+  expect(bounds!.x).toBeGreaterThanOrEqual(0);
+  expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(390);
+  await page.getByRole("button", { name: "Today", exact: true }).click();
+  await expect(calendar).not.toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "From date", exact: true }),
+  ).not.toHaveText("From date");
+  await page.getByRole("button", { name: "From date", exact: true }).click();
+  await page.getByRole("button", { name: "Clear", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: "From date", exact: true }),
+  ).toHaveText("From date");
+  expect(await page.locator("select,input[type=date]").count()).toBe(0);
+});
+
+test("opening a select never scrolls the page and menu selection works on the first attempt", async ({
+  page,
+}) => {
+  await page.goto("/settings/");
+  for (const name of ["Language", "Target palette", "Render quality"]) {
+    const trigger = page.getByRole("combobox", { name, exact: true });
+    await trigger.scrollIntoViewIfNeeded();
+    const before = await page.evaluate(() => window.scrollY);
+    await trigger.click();
+    await expect(page.getByRole("listbox")).toBeVisible();
+    expect(
+      Math.abs((await page.evaluate(() => window.scrollY)) - before),
+    ).toBeLessThan(2);
+    const menu = await page.getByRole("listbox").boundingBox();
+    expect(menu!.y).toBeGreaterThanOrEqual(0);
+    expect(menu!.y + menu!.height).toBeLessThanOrEqual(721);
+    await trigger.press("Escape");
+  }
+  await page.getByRole("combobox", { name: "Target palette" }).click();
+  await page.getByRole("option", { name: "Cyan", exact: true }).click();
+  await expect(
+    page.getByRole("combobox", { name: "Target palette" }),
+  ).toHaveText("Cyan");
+});
+
+test("training cards have two columns, real screenshots and working carousel controls", async ({
+  page,
+}) => {
+  await page.goto("/training/");
+  const cards = page.locator(".training-card");
+  await expect(cards).toHaveCount(10);
+  const first = await cards.nth(0).boundingBox(),
+    second = await cards.nth(1).boundingBox();
+  expect(first!.y).toBe(second!.y);
+  expect(second!.x).toBeGreaterThan(first!.x);
+  const preview = cards.first().locator(".game-preview");
+  await expect
+    .poll(() =>
+      preview
+        .locator("img")
+        .first()
+        .evaluate(
+          (img: HTMLImageElement) => img.complete && img.naturalWidth > 0,
+        ),
+    )
+    .toBe(true);
+  await preview
+    .getByRole("button", { name: "Next screenshot of Flick Burst" })
+    .click();
+  await expect(preview).toHaveAttribute("data-slide", "1");
+  await preview
+    .getByRole("button", { name: "Show screenshot 1 of Flick Burst" })
+    .click();
+  await expect(preview).toHaveAttribute("data-slide", "0");
+  await page.setViewportSize({ width: 390, height: 844 });
+  const mobileFirst = await cards.nth(0).boundingBox(),
+    mobileSecond = await cards.nth(1).boundingBox();
+  expect(mobileSecond!.y).toBeGreaterThan(mobileFirst!.y);
+  expect(mobileFirst!.x).toBe(mobileSecond!.x);
+  await preview.locator(".game-preview-track").evaluate((element) => {
+    element.scrollLeft = element.clientWidth;
+  });
+  await expect(preview).toHaveAttribute("data-slide", "1");
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
+});
 async function startRound(page: Page) {
   await page.getByRole("button", { name: "Start round", exact: true }).click();
   await expect(page.locator(".arena-stage")).toHaveAttribute(
@@ -248,7 +417,8 @@ test("locale, favorites and custom routines persist", async ({ page }) => {
     page.getByRole("heading", { name: "Evening focus" }),
   ).toBeVisible();
   await page.goto("/settings/");
-  await page.getByRole("combobox", { name: "Language" }).selectOption("uz");
+  await page.getByRole("combobox", { name: "Language" }).click();
+  await page.getByRole("option", { name: "O‘zbekcha" }).click();
   await expect(
     page.getByRole("heading", { name: "Sozlamalar", exact: true }),
   ).toBeVisible();
@@ -282,7 +452,8 @@ test("mobile navigation and long localized labels do not overflow", async ({
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/settings/");
-  await page.getByRole("combobox", { name: "Language" }).selectOption("de");
+  await page.getByRole("combobox", { name: "Language" }).click();
+  await page.getByRole("option", { name: "Deutsch" }).click();
   await expect(
     page.getByRole("heading", { name: "Einstellungen", exact: true }),
   ).toBeVisible();

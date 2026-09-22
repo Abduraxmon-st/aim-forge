@@ -1,3 +1,4 @@
+import { Select, RadioGroup } from "../../components/controls";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Play, Crosshair, ArrowLeft, Info } from "lucide-react";
@@ -8,6 +9,7 @@ import { dimension, isTracking, isReaction } from "../../domain/rules";
 import { Heading, Field, Badge, Goal } from "../../components/ui";
 import { Link, useNavigate } from "../../components/router";
 import { decodeChallenge } from "../sharing/share";
+import { num, decimal } from "../../i18n";
 export default function Setup({ id }: { id: string }) {
   const { t } = useTranslation(),
     { db } = useApp(),
@@ -154,7 +156,7 @@ export default function Setup({ id }: { id: string }) {
             <p className="notice">{t("Challenge settings are fixed.")}</p>
           )}
           <Field label={t("Difficulty")}>
-            <select
+            <Select
               value={config.difficulty}
               disabled={locked}
               onChange={(e) =>
@@ -175,27 +177,27 @@ export default function Setup({ id }: { id: string }) {
                   {t(d)}
                 </option>
               ))}
-            </select>
+            </Select>
           </Field>
           {!isReaction(config.scenario) && (
-            <Field label={t("Duration")}>
-              <div className="segmented">
-                {([30, 60, 120] as const).map((n) => (
-                  <button
-                    aria-label={n + " " + t("s")}
-                    disabled={locked}
-                    key={n}
-                    className={config.duration === n ? "selected" : ""}
-                    onClick={() => patch({ duration: n })}
-                  >
-                    {n} {t("s")}
-                  </button>
-                ))}
-              </div>
-            </Field>
+            <div className="field">
+              <span>{t("Duration")}</span>
+              <RadioGroup
+                label={t("Duration")}
+                value={config.duration}
+                disabled={locked}
+                options={[30, 60, 120].map((n) => ({
+                  value: n,
+                  label: n + " " + t("s"),
+                }))}
+                onValueChange={(value) =>
+                  patch({ duration: Number(value) as 30 | 60 | 120 })
+                }
+              />
+            </div>
           )}
           <Field label={t("Input")}>
-            <select
+            <Select
               value={config.input}
               disabled={dim === "3d" || locked}
               onChange={(e) =>
@@ -204,7 +206,7 @@ export default function Setup({ id }: { id: string }) {
             >
               <option value="mouse">{t("mouse")}</option>
               {dim === "2d" && <option value="touch">{t("touch")}</option>}
-            </select>
+            </Select>
           </Field>
           {dim === "3d" && (
             <>
@@ -217,9 +219,9 @@ export default function Setup({ id }: { id: string }) {
                   min=".005"
                   max=".5"
                   step=".005"
-                  value={config.sensitivity}
+                  value={decimal(config.sensitivity)}
                   onChange={(e) =>
-                    patch({ sensitivity: Number(e.target.value) })
+                    patch({ sensitivity: decimal(Number(e.target.value)) })
                   }
                 />
               </Field>
@@ -232,13 +234,13 @@ export default function Setup({ id }: { id: string }) {
                   value={config.fov}
                   onChange={(e) => patch({ fov: Number(e.target.value) }, true)}
                 />
-                <output>{config.fov}°</output>
+                <output>{num(config.fov, 3)}°</output>
               </Field>
               <p className="subtle">
                 {t("Target distance")}:{" "}
                 {config.scenario === "precision-range"
-                  ? "8–" + (config.distance + 2)
-                  : config.distance}{" "}
+                  ? "8–" + num(config.distance + 2, 3)
+                  : num(config.distance, 3)}{" "}
                 {t("world units")}
               </p>
             </>
@@ -259,7 +261,7 @@ export default function Setup({ id }: { id: string }) {
                   patch({ radius: Number(e.target.value) }, true)
                 }
               />
-              <output>{config.radius}</output>
+              <output>{num(config.radius, 3)}</output>
             </Field>
             <Field label={t("Speed")}>
               <input
@@ -270,7 +272,7 @@ export default function Setup({ id }: { id: string }) {
                 disabled={locked}
                 onChange={(e) => patch({ speed: Number(e.target.value) }, true)}
               />
-              <output>{config.speed}</output>
+              <output>{num(config.speed, 3)}</output>
             </Field>
           </details>
           <div className="goal-box">

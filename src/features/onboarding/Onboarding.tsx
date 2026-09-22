@@ -1,3 +1,4 @@
+import { Select } from "../../components/controls";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { type Settings } from "../../domain/models";
@@ -20,7 +21,7 @@ export default function Onboarding() {
       />
       <section className="panel">
         <Field label={t("Language")}>
-          <select
+          <Select
             value={db.settings.language}
             onChange={(e) =>
               void settings({
@@ -39,7 +40,7 @@ export default function Onboarding() {
                 {label}
               </option>
             ))}
-          </select>
+          </Select>
         </Field>
         <Field label={t("Nickname (optional)")}>
           <input
@@ -49,16 +50,16 @@ export default function Onboarding() {
           />
         </Field>
         <Field label={t("Preferred input")}>
-          <select
+          <Select
             value={input}
             onChange={(e) => setInput(e.target.value as Settings["input"])}
           >
             <option value="mouse">{t("mouse")}</option>
             <option value="touch">{t("touch")}</option>
-          </select>
+          </Select>
         </Field>
         <Field label={t("Training goal")}>
-          <select
+          <Select
             value={goal}
             onChange={(e) => setGoal(e.target.value as Settings["goal"])}
           >
@@ -67,7 +68,7 @@ export default function Onboarding() {
                 {t(x)}
               </option>
             ))}
-          </select>
+          </Select>
         </Field>
         <div className="notice">
           <p>{t("localPrivacy")}</p>

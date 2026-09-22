@@ -24,6 +24,10 @@ npm run test:e2e    # install Chromium first: npx playwright install chromium
 - Five Canvas modes: Flick Burst, Micro Precision, Moving Clicks, Smooth Tracking, Reaction Tap.
 - Five actual Three.js modes: Sphere Flick, Precision Range, Strafe Tracking, Reactive Tracking, Target Switching.
 - Home, searchable/filterable library, scenario setup, arena, results, analytics, history, daily challenges, routines, achievements, settings, optional onboarding and help/privacy.
+- A two-column desktop library with two actual gameplay screenshots per scenario, swipeable galleries, keyboard controls and a single-column mobile layout. Recreate the local assets with `node scripts/capture-training.mjs` while the preview is running.
+- Custom dropdowns, radio choices, checkboxes and calendar date filters. Minimal charts format axes, tooltips and summaries to no more than three decimal places.
+- Valid settings edits save automatically, with visible pending/saved state. Invalid edits keep the last valid stored value. Settings and backups are scoped to the current browser and origin; the development and preview ports have separate profiles.
+- Help & Privacy includes a compact section menu that becomes horizontally scrollable on mobile. Routine and scenario actions align at the bottom of their cards.
 - Beginner/intermediate/advanced presets; 30/60/120-second rounds; ten reaction trials; favorites and repeat-last-scenario.
 - Seeded daily 2D/3D challenges, editable built-in routines and a routine builder, local milestones, crosshair editor, target palettes, audio controls and manual rotation calibration.
 - JSON backup with validated replacement preview, recovery export, CSV export, locally rendered PNG results, copyable text, native sharing when supported and bounded friend-challenge URLs.

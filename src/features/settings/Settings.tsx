@@ -1,6 +1,19 @@
+import { Select } from "../../components/controls";
 import { useState, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
-import { Download, Upload, ShieldCheck, WifiOff, Save } from "lucide-react";
+import {
+  Download,
+  Upload,
+  ShieldCheck,
+  WifiOff,
+  Save,
+  Check,
+  LoaderCircle,
+  UserRound,
+  MousePointer2,
+  Crosshair,
+  SlidersHorizontal,
+} from "lucide-react";
 import { useApp } from "../../storage/store";
 import {
   type Settings as SettingsType,
@@ -18,23 +31,58 @@ import { Heading, Field, CrosshairPreview } from "../../components/ui";
 import { download, sessionsCSV } from "../sharing/share";
 import { prepareOffline, offlineStatus } from "./offline";
 import Calibration from "./Calibration";
+import { num, decimal } from "../../i18n";
 export default function Settings() {
   const { t } = useTranslation(),
     { db, settings, refresh, mutate } = useApp(),
-    [draft, setDraft] = useState<SettingsType>(db.settings),
+    [overrides, setOverrides] = useState<Partial<SettingsType>>({}),
+    [saving, setSaving] = useState(false),
     [message, setMessage] = useState(""),
     [imported, setImported] = useState<Snapshot | null>(null),
     [offline, setOffline] = useState(false),
     [busy, setBusy] = useState(false),
     [update, setUpdate] = useState<ServiceWorkerRegistration | null>(null),
-    input = useRef<HTMLInputElement>(null);
+    input = useRef<HTMLInputElement>(null),
+    writeSequence = useRef(0);
+  const draft = { ...db.settings, ...overrides };
+  const validation = settingsSchema.safeParse(draft);
+  const dirty = JSON.stringify(draft) !== JSON.stringify(db.settings);
   useEffect(() => {
     void offlineStatus().then(setOffline);
     void navigator.serviceWorker?.getRegistration().then((r) => {
       if (r?.waiting) setUpdate(r);
     });
   }, []);
-  const patch = (p: Partial<SettingsType>) => setDraft((d) => ({ ...d, ...p }));
+  async function persist(p: Partial<SettingsType>) {
+    const sequence = ++writeSequence.current;
+    setSaving(true);
+    const saved = await settings(p);
+    if (saved)
+      setOverrides((current) => {
+        const next = { ...current };
+        for (const key of Object.keys(p) as (keyof SettingsType)[])
+          if (JSON.stringify(next[key]) === JSON.stringify(p[key]))
+            delete next[key];
+        return next;
+      });
+    if (sequence === writeSequence.current) {
+      setSaving(false);
+      setMessage(
+        saved ? "" : (useApp.getState().error ?? "storageUnavailable"),
+      );
+    }
+    return saved;
+  }
+  const patch = (p: Partial<SettingsType>) => {
+    setOverrides((current) => ({ ...current, ...p }));
+    // Save valid fields immediately. An unfinished timezone or number must not
+    // discard other changes or replace the last valid value in storage.
+    if (
+      settingsSchema.safeParse({ ...useApp.getState().db.settings, ...p })
+        .success
+    )
+      void persist(p);
+  };
   const check = (key: keyof SettingsType, label: string) => (
     <label className="check">
       <input
@@ -57,19 +105,34 @@ export default function Settings() {
       setMessage("Check the settings values and timezone.");
       return;
     }
-    await settings(parsed.data);
-    setMessage(useApp.getState().error ?? "Settings saved.");
+    if (await persist(overrides)) setMessage("Settings saved.");
   }
   return (
     <>
       <Heading
+        eyebrow={t("settings-eyebrow")}
         title={t("Settings")}
         description={t("Make this space your own.")}
         action={
-          <button className="button primary" onClick={() => void save()}>
-            <Save size={16} />
-            {t("Save settings")}
-          </button>
+          <span
+            className={
+              "settings-save-state " + (saving || dirty ? "pending" : "")
+            }
+            role="status"
+          >
+            {saving ? (
+              <LoaderCircle size={15} className="spin" />
+            ) : (
+              <Check size={15} />
+            )}
+            {t(
+              saving
+                ? "settings-saving"
+                : dirty
+                  ? "settings-unsaved"
+                  : "settings-saved",
+            )}
+          </span>
         }
       />
       {message && (
@@ -77,9 +140,26 @@ export default function Settings() {
           {t(message)}
         </div>
       )}
+      <div className="settings-intro">
+        <ShieldCheck size={16} />
+        <span>{t("settings-autosave")}</span>
+      </div>
+      {!validation.success && (
+        <p className="notice error-text" role="alert">
+          {t("Check the settings values and timezone.")}
+        </p>
+      )}
       <div className="settings-grid">
         <section className="panel">
-          <h2>{t("Profile & language")}</h2>
+          <div className="settings-section-heading">
+            <span>
+              <UserRound size={20} />
+            </span>
+            <div>
+              <h2>{t("Profile & language")}</h2>
+              <p>{t("settings-profileDescription")}</p>
+            </div>
+          </div>
           <Field label={t("Nickname (optional)")}>
             <input
               maxLength={30}
@@ -88,12 +168,11 @@ export default function Settings() {
             />
           </Field>
           <Field label={t("Language")}>
-            <select
+            <Select
               value={draft.language}
               onChange={(e) => {
                 const language = e.target.value as SettingsType["language"];
                 patch({ language });
-                void settings({ language });
               }}
             >
               {[
@@ -107,7 +186,7 @@ export default function Settings() {
                   {name}
                 </option>
               ))}
-            </select>
+            </Select>
           </Field>
           <Field
             label={t("Training timezone")}
@@ -135,17 +214,25 @@ export default function Settings() {
               type="number"
               min={5}
               max={600}
-              value={draft.weeklyGoal / 60}
+              value={decimal(draft.weeklyGoal / 60)}
               onChange={(e) =>
-                patch({ weeklyGoal: Number(e.target.value) * 60 })
+                patch({ weeklyGoal: Math.round(Number(e.target.value) * 60) })
               }
             />
           </Field>
         </section>
         <section className="panel">
-          <h2>{t("Input & camera")}</h2>
+          <div className="settings-section-heading">
+            <span>
+              <MousePointer2 size={20} />
+            </span>
+            <div>
+              <h2>{t("Input & camera")}</h2>
+              <p>{t("settings-inputDescription")}</p>
+            </div>
+          </div>
           <Field label={t("Preferred input")}>
-            <select
+            <Select
               value={draft.input}
               onChange={(e) =>
                 patch({ input: e.target.value as SettingsType["input"] })
@@ -153,7 +240,7 @@ export default function Settings() {
             >
               <option value="mouse">{t("mouse")}</option>
               <option value="touch">{t("touch")}</option>
-            </select>
+            </Select>
           </Field>
           <Field label={t("Sensitivity")} hint={t("Degrees per mouse count")}>
             <input
@@ -161,8 +248,10 @@ export default function Settings() {
               min={0.005}
               max={0.5}
               step={0.005}
-              value={draft.sensitivity}
-              onChange={(e) => patch({ sensitivity: Number(e.target.value) })}
+              value={decimal(draft.sensitivity)}
+              onChange={(e) =>
+                patch({ sensitivity: decimal(Number(e.target.value)) })
+              }
             />
           </Field>
           <Field
@@ -189,7 +278,7 @@ export default function Settings() {
               value={draft.fov}
               onChange={(e) => patch({ fov: Number(e.target.value) })}
             />
-            <output>{draft.fov}°</output>
+            <output>{num(draft.fov, 3)}°</output>
           </Field>
           {check("smoothing", "Optional mouse smoothing")}
           {check("unadjusted", "Request unadjusted movement when supported")}
@@ -199,12 +288,20 @@ export default function Settings() {
           </details>
         </section>
         <section className="panel">
-          <h2>{t("Crosshair")}</h2>
+          <div className="settings-section-heading">
+            <span>
+              <Crosshair size={20} />
+            </span>
+            <div>
+              <h2>{t("Crosshair")}</h2>
+              <p>{t("settings-crosshairDescription")}</p>
+            </div>
+          </div>
           <div className="crosshair-preview">
             <CrosshairPreview value={draft.crosshair} />
           </div>
           <Field label={t("Shape")}>
-            <select
+            <Select
               value={draft.crosshair.shape}
               onChange={(e) =>
                 patch({
@@ -220,10 +317,10 @@ export default function Settings() {
                   {t(s)}
                 </option>
               ))}
-            </select>
+            </Select>
           </Field>
           {(["size", "thickness", "gap", "opacity"] as const).map((k) => (
-            <Field key={k} label={t(k)}>
+            <Field key={k} label={t(k === "gap" ? "settings-crosshairGap" : k)}>
               <input
                 type="range"
                 min={
@@ -255,7 +352,7 @@ export default function Settings() {
                   })
                 }
               />
-              <output>{draft.crosshair[k]}</output>
+              <output>{num(draft.crosshair[k], 3)}</output>
             </Field>
           ))}
           <Field label={t("Color")}>
@@ -283,9 +380,17 @@ export default function Settings() {
           </label>
         </section>
         <section className="panel">
-          <h2>{t("Appearance & audio")}</h2>
+          <div className="settings-section-heading">
+            <span>
+              <SlidersHorizontal size={20} />
+            </span>
+            <div>
+              <h2>{t("Appearance & audio")}</h2>
+              <p>{t("settings-appearanceDescription")}</p>
+            </div>
+          </div>
           <Field label={t("Target palette")}>
-            <select
+            <Select
               value={draft.palette}
               onChange={(e) =>
                 patch({ palette: e.target.value as SettingsType["palette"] })
@@ -296,10 +401,10 @@ export default function Settings() {
                   {t(p)}
                 </option>
               ))}
-            </select>
+            </Select>
           </Field>
           <Field label={t("Render quality")}>
-            <select
+            <Select
               value={draft.quality}
               onChange={(e) =>
                 patch({ quality: e.target.value as SettingsType["quality"] })
@@ -310,7 +415,7 @@ export default function Settings() {
                   {t(p)}
                 </option>
               ))}
-            </select>
+            </Select>
           </Field>
           {(["master", "hitVolume", "missVolume"] as const).map((k) => (
             <Field key={k} label={t(k)}>
@@ -410,7 +515,7 @@ export default function Settings() {
                   try {
                     await transact(() => repository().replace(imported));
                     refresh();
-                    setDraft(imported.settings);
+                    setOverrides({});
                     setImported(null);
                     setMessage("Backup restored.");
                   } catch {
@@ -458,7 +563,7 @@ export default function Settings() {
                 void transact(() => repository().replace(freshSnapshot()))
                   .then(() => {
                     refresh();
-                    setDraft(freshSnapshot().settings);
+                    setOverrides({});
                   })
                   .catch(() => setMessage("storageUnavailable"));
             }}
@@ -528,8 +633,16 @@ export default function Settings() {
           </button>
         )}
       </section>
-      <div className="action-row">
-        <button className="button primary" onClick={() => void save()}>
+      <div className="settings-save-bar">
+        <div>
+          <strong>{t(dirty ? "settings-unsaved" : "settings-saved")}</strong>
+          <p>{t("settings-autosave")}</p>
+        </div>
+        <button
+          className="button primary"
+          disabled={saving}
+          onClick={() => void save()}
+        >
           <Save size={16} />
           {t("Save settings")}
         </button>

@@ -1,3 +1,4 @@
+import { Select, DatePicker } from "../../components/controls";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useApp } from "../../storage/store";
@@ -31,7 +32,7 @@ export default function History() {
         description={t("Every retained round, with its original settings.")}
       />
       <div className="filter-bar">
-        <select
+        <Select
           aria-label={t("Scenario")}
           value={scenario}
           onChange={(e) => {
@@ -45,8 +46,8 @@ export default function History() {
               {t(s.id)}
             </option>
           ))}
-        </select>
-        <select
+        </Select>
+        <Select
           aria-label={t("Input")}
           value={input}
           onChange={(e) => {
@@ -57,8 +58,8 @@ export default function History() {
           <option value="all">{t("All inputs")}</option>
           <option value="mouse">{t("mouse")}</option>
           <option value="touch">{t("touch")}</option>
-        </select>
-        <select
+        </Select>
+        <Select
           aria-label={t("Run type")}
           value={kind}
           onChange={(e) => {
@@ -71,19 +72,17 @@ export default function History() {
               {t(k === "all" ? "All run types" : k)}
             </option>
           ))}
-        </select>
-        <input
+        </Select>
+        <DatePicker
           aria-label={t("From date")}
-          type="date"
           value={from}
           onChange={(e) => {
             setFrom(e.target.value);
             setPage(0);
           }}
         />
-        <input
+        <DatePicker
           aria-label={t("To date")}
-          type="date"
           value={to}
           onChange={(e) => {
             setTo(e.target.value);

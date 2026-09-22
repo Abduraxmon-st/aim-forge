@@ -21,11 +21,13 @@ void i18n.use(initReactI18next).init({
 });
 export default i18n;
 export const num = (n: number | null | undefined, digits = 0) =>
-  n == null
+  n == null || !Number.isFinite(n)
     ? "—"
     : new Intl.NumberFormat(i18n.language, {
-        maximumFractionDigits: digits,
+        maximumFractionDigits: Math.min(3, Math.max(0, Math.trunc(digits))),
       }).format(n);
+export const decimal = (n: number) =>
+  Number.isFinite(n) ? Number(n.toFixed(3)) : 0;
 export const duration = (ms: number) =>
   `${num(ms / 60000, 1)} ${i18n.t("min")}`;
 export const dateLabel = (iso: string) =>

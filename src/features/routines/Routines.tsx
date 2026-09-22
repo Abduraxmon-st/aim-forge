@@ -1,3 +1,4 @@
+import { Select } from "../../components/controls";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -214,7 +215,7 @@ export default function Routines() {
               <div className="builder-step" key={i}>
                 <span className="step-number">{i + 1}</span>
                 <Field label={t("Scenario")}>
-                  <select
+                  <Select
                     value={s.scenario}
                     onChange={(e) =>
                       setEditing({
@@ -235,7 +236,7 @@ export default function Routines() {
                         {t(x.id)}
                       </option>
                     ))}
-                  </select>
+                  </Select>
                 </Field>
                 {(["duration", "rounds", "rest"] as const).map((key) => (
                   <Field
@@ -249,7 +250,7 @@ export default function Routines() {
                     )}
                   >
                     {key === "duration" ? (
-                      <select
+                      <Select
                         value={s[key]}
                         onChange={(e) =>
                           setEditing({
@@ -271,7 +272,7 @@ export default function Routines() {
                             {n} {t("s")}
                           </option>
                         ))}
-                      </select>
+                      </Select>
                     ) : (
                       <input
                         type="number"

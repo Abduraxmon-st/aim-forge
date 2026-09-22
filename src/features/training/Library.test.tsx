@@ -21,9 +21,8 @@ it("exposes ten working scenario links and a real filter", () => {
   expect(screen.getAllByRole("link", { name: /Open scenario/i })).toHaveLength(
     10,
   );
-  fireEvent.change(screen.getByRole("combobox", { name: "Dimension" }), {
-    target: { value: "3d" },
-  });
+  fireEvent.click(screen.getByRole("combobox", { name: "Dimension" }));
+  fireEvent.click(screen.getByRole("option", { name: "3D" }));
   expect(screen.getAllByRole("link", { name: /Open scenario/i })).toHaveLength(
     5,
   );

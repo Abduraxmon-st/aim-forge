@@ -1,18 +1,12 @@
+import { Select } from "../../components/controls";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import {
-  Search,
-  Star,
-  ArrowUpRight,
-  MousePointer2,
-  Crosshair,
-  Move,
-  Zap,
-} from "lucide-react";
+import { Search, Star, ArrowUpRight, Crosshair, Move, Zap } from "lucide-react";
 import { useApp } from "../../storage/store";
 import { catalog } from "../../engine/scenarios/catalog";
 import { Heading, Badge } from "../../components/ui";
 import { Link } from "../../components/router";
+import GamePreview from "./GamePreview";
 export default function Library() {
   const { t } = useTranslation(),
     { db, mutate } = useApp(),
@@ -47,7 +41,7 @@ export default function Library() {
             onChange={(e) => setQ(e.target.value)}
           />
         </label>
-        <select
+        <Select
           aria-label={t("Dimension")}
           value={dim}
           onChange={(e) => setDim(e.target.value)}
@@ -55,8 +49,8 @@ export default function Library() {
           <option value="all">{t("All dimensions")}</option>
           <option value="2d">2D</option>
           <option value="3d">3D</option>
-        </select>
-        <select
+        </Select>
+        <Select
           aria-label={t("Skill")}
           value={skill}
           onChange={(e) => setSkill(e.target.value)}
@@ -69,8 +63,8 @@ export default function Library() {
               </option>
             ),
           )}
-        </select>
-        <select
+        </Select>
+        <Select
           aria-label={t("Difficulty")}
           value={difficulty}
           onChange={(e) => setDifficulty(e.target.value)}
@@ -80,7 +74,7 @@ export default function Library() {
               {t(x)}
             </option>
           ))}
-        </select>
+        </Select>
         <button
           className={"button " + (favorites ? "selected" : "")}
           aria-pressed={favorites}
@@ -94,8 +88,8 @@ export default function Library() {
         <p>{t("scenarioCount", { count: items.length })}</p>
         <small>{t("All results are local and unverified.")}</small>
       </div>
-      <div className="library-grid">
-        {items.map((s) => {
+      <div className="library-grid training-grid">
+        {items.map((s, index) => {
           const I =
             s.skill === "tracking"
               ? Move
@@ -106,7 +100,7 @@ export default function Library() {
             <article
               key={s.id}
               className={
-                "mode-card " +
+                "mode-card training-card " +
                 (s.dimension === "3d"
                   ? "blue"
                   : s.skill === "precision"
@@ -114,10 +108,11 @@ export default function Library() {
                     : "violet")
               }
             >
-              <div className="card-top">
-                <span className="mode-icon">
-                  <I size={27} />
-                </span>
+              <GamePreview
+                scenario={s.id}
+                dimension={s.dimension}
+                eager={index < 2}
+              >
                 <button
                   className="icon-button"
                   aria-label={t("Favorite scenario", { scenario: t(s.id) })}
@@ -135,24 +130,25 @@ export default function Library() {
                     fill={db.favorites.includes(s.id) ? "currentColor" : "none"}
                   />
                 </button>
+              </GamePreview>
+              <div className="training-card-content">
+                <div className="badges">
+                  <Badge>{t(s.skill)}</Badge>
+                  <Badge>{t(difficulty)}</Badge>
+                </div>
+                <h3>
+                  <I size={19} aria-hidden="true" />
+                  {t(s.id)}
+                </h3>
+                <p>{t(s.id + "Desc")}</p>
+                <Link
+                  className="card-footer"
+                  to={"/setup/" + s.id + "/?difficulty=" + difficulty}
+                >
+                  <span>{t("Open scenario")}</span>
+                  <ArrowUpRight size={18} />
+                </Link>
               </div>
-              <div className="badges">
-                <Badge>{s.dimension.toUpperCase()}</Badge>
-                <Badge>{t(s.skill)}</Badge>
-                <Badge>{t(difficulty)}</Badge>
-              </div>
-              <h3>{t(s.id)}</h3>
-              <p>{t(s.id + "Desc")}</p>
-              <Link
-                className="card-footer"
-                to={"/setup/" + s.id + "/?difficulty=" + difficulty}
-              >
-                <span>
-                  <MousePointer2 size={14} />
-                  {t("Open scenario")}
-                </span>
-                <ArrowUpRight size={18} />
-              </Link>
             </article>
           );
         })}
