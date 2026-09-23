@@ -179,6 +179,10 @@ test("a completed real round unlocks the first milestone and survives a refresh"
     exact: true,
   });
   await expect(notice).toBeVisible();
+  await expect(notice).toHaveAttribute("data-achievement", "first");
+  await expect(
+    notice.locator(".achievement-emblem.earned .lucide-footprints"),
+  ).toBeVisible();
   await expect(notice.getByRole("status")).toContainText(
     en["achievement-first"],
   );
@@ -189,7 +193,10 @@ test("a completed real round unlocks the first milestone and survives a refresh"
   expect(saved.sessions).toHaveLength(1);
   expect(saved.achievements).toContain("first");
 
-  await page.goto("/achievements/");
+  await notice
+    .getByRole("link", { name: en["achievements-view-collection"] })
+    .click();
+  await expect(page).toHaveURL(/\/achievements\/$/);
   const first = page.locator(".achievement-card").filter({
     has: page.getByRole("heading", {
       name: en["achievement-first"],

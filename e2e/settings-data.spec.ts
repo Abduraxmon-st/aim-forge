@@ -176,7 +176,9 @@ test("import validates and previews before replacement and retains a recovery co
   ).toBeVisible();
   await page.locator("input[type=file]").setInputFiles(file);
   await expect(
-    dialog.getByText("Backup validated", { exact: true }),
+    dialog
+      .locator(".data-file-picker")
+      .getByText("Backup validated", { exact: true }),
   ).toBeVisible();
   await expect(dialog).toContainText("my-backup.json");
   await expect(dialog).toContainText("Imported profile");
@@ -190,7 +192,9 @@ test("import validates and previews before replacement and retains a recovery co
   dialog = await openDialog(page, "Import backup");
   await page.locator("input[type=file]").setInputFiles(file);
   await expect(
-    dialog.getByText("Backup validated", { exact: true }),
+    dialog
+      .locator(".data-file-picker")
+      .getByText("Backup validated", { exact: true }),
   ).toBeVisible();
   await dialog
     .getByRole("button", { name: "Confirm replacement", exact: true })
@@ -318,8 +322,11 @@ test("a failed storage write keeps the confirmation dialog open and preserves cu
     .getByRole("button", { name: "Clear training history", exact: true })
     .click();
   await expect(dialog).toBeVisible();
-  await expect(dialog.getByRole("alert")).toBeVisible();
-  await expect(dialog.getByRole("alert")).toContainText(/\S+/);
+  await expect(dialog.locator(".data-modal-error")).toBeVisible();
+  await expect(dialog.locator(".data-modal-error")).toContainText(/\S+/);
+  await expect(
+    dialog.locator('.aimforge-toast[data-kind="error"]'),
+  ).toBeVisible();
   await expect(
     dialog.getByRole("button", { name: "Clear training history", exact: true }),
   ).toBeEnabled();
@@ -358,6 +365,9 @@ test("resetting a German profile navigates to English settings and retains the G
   await expect(page).toHaveURL(/\/en\/settings\/$/);
   await expect(page.locator("html")).toHaveAttribute("lang", "en");
   await expect(
+    page.locator('.aimforge-toast[data-kind="success"]'),
+  ).toContainText("Local data reset.");
+  await expect(
     page.getByRole("textbox", { name: "Nickname (optional)", exact: true }),
   ).toHaveValue("");
   expect((await savedProfile(page)).settings).toEqual(defaultSettings());
@@ -392,13 +402,18 @@ test("importing a Spanish profile changes the localized settings URL and preserv
     buffer: Buffer.from(JSON.stringify(incoming)),
   });
   await expect(
-    dialog.getByText("Backup validated", { exact: true }),
+    dialog
+      .locator(".data-file-picker")
+      .getByText("Backup validated", { exact: true }),
   ).toBeVisible();
   await dialog
     .getByRole("button", { name: "Confirm replacement", exact: true })
     .click();
   await expect(page).toHaveURL(/\/es\/settings\/$/);
   await expect(page.locator("html")).toHaveAttribute("lang", "es");
+  await expect(
+    page.locator('.aimforge-toast[data-kind="success"]'),
+  ).toContainText(es["Backup restored."]);
   await expect(
     page.getByRole("textbox", { name: es["Nickname (optional)"], exact: true }),
   ).toHaveValue("Perfil importado");

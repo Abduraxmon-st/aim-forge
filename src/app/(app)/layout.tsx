@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { AppToasts } from "../../components/notifications";
 import "../../styles/app.css";
 import "../../styles/controls.css";
 import "../../styles/training.css";
@@ -19,7 +20,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body>{children}</body>
+      <body>
+        {children}
+        <AppToasts />
+      </body>
     </html>
   );
 }

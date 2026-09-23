@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Search, Star, ArrowUpRight, Crosshair, Move, Zap } from "lucide-react";
 import { useApp } from "../../storage/store";
+import { notify } from "../../components/notifications";
 import { catalog } from "../../engine/scenarios/catalog";
 import { Heading, Badge } from "../../components/ui";
 import { Link, useRouteLocale } from "../../components/router";
@@ -118,13 +119,29 @@ export default function Library() {
                   className="icon-button"
                   aria-label={t("Favorite scenario", { scenario: t(s.id) })}
                   aria-pressed={db.favorites.includes(s.id)}
-                  onClick={() =>
-                    void mutate((d) => {
+                  onClick={async () => {
+                    let added = false;
+                    const saved = await mutate((d) => {
+                      added = !d.favorites.includes(s.id);
                       d.favorites = d.favorites.includes(s.id)
                         ? d.favorites.filter((x) => x !== s.id)
                         : [...d.favorites, s.id];
-                    })
-                  }
+                    });
+                    if (saved)
+                      notify.success(
+                        added ? "toast-favoriteAdded" : "toast-favoriteRemoved",
+                        {
+                          id: `favorite-${s.id}`,
+                          description: s.id,
+                          icon: "favorite",
+                        },
+                      );
+                    else
+                      notify.error(
+                        useApp.getState().error ?? "storageUnavailable",
+                        { id: `favorite-${s.id}` },
+                      );
+                  }}
                 >
                   <Star
                     size={18}

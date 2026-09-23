@@ -626,5 +626,17 @@
   "data-cleared": "Training history cleared.",
   "data-reset": "Local data reset.",
   "data-actionFailed": "This action could not be completed. Your last saved data is unchanged.",
-  "data-importFailed": "The backup could not be read. Choose a valid AimForge JSON file."
+  "data-importFailed": "The backup could not be read. Choose a valid AimForge JSON file.",
+  "toast-notifications": "Notifications",
+  "toast-dismiss": "Dismiss notification",
+  "toast-localSaved": "Saved on this device.",
+  "toast-favoriteAdded": "Added to favorites",
+  "toast-favoriteRemoved": "Removed from favorites",
+  "toast-routineCreated": "Routine created",
+  "toast-routineUpdated": "Routine updated",
+  "toast-routineDeleted": "Routine deleted",
+  "toast-routineStarted": "Routine ready",
+  "toast-sessionSaved": "Session saved",
+  "toast-shared": "Result shared",
+  "toast-updateInstalled": "App updated"
 }

@@ -1742,6 +1742,10 @@ main {
 .button.primary:hover {
   background: #c2b1ff;
 }
+.button[aria-disabled="true"] {
+  opacity: 0.5;
+  cursor: wait;
+}
 .button.danger {
   color: #ffb4b4;
   border-color: #714047;

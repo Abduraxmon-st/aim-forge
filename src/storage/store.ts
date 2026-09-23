@@ -19,7 +19,7 @@ type Store = {
   refresh: () => void;
   save: (s: Session) => Promise<boolean>;
   settings: (s: Partial<Settings>) => Promise<boolean>;
-  mutate: (fn: (d: Snapshot) => void) => Promise<void>;
+  mutate: (fn: (d: Snapshot) => void) => Promise<boolean>;
   clearError: () => void;
 };
 export const useApp = create<Store>((set, get) => ({
@@ -133,8 +133,10 @@ export const useApp = create<Store>((set, get) => ({
     try {
       const db = await transact(() => repository().update(fn));
       set({ db, error: null });
+      return true;
     } catch (e) {
       set({ error: errorKey(e) });
+      return false;
     }
   },
   clearError: () => {

@@ -22,9 +22,9 @@ import { download } from "../features/sharing/share";
 import Home from "../features/home/Home";
 import Library from "../features/training/Library";
 import Setup from "../features/training/Setup";
-import UnlockNotice from "../features/achievements/UnlockNotice";
 import { registerTools } from "./webmcp";
 import { splitLocalizedPath, type Locale } from "../i18n/languages";
+import { notify } from "../components/notifications";
 const Arena = lazy(() => import("../features/training/Arena"));
 const Results = lazy(() => import("../features/results/Results"));
 const Dashboard = lazy(() => import("../features/analytics/Dashboard"));
@@ -162,8 +162,12 @@ export default function App({ locale }: { locale?: Locale }) {
                       }),
                       "aimforge-recovery.json",
                     );
+                    notify.success("data-downloadStarted", {
+                      id: "recovery-export",
+                      icon: "download",
+                    });
                   } catch {
-                    /* storage unavailable */
+                    notify.error("Export failed.", { id: "recovery-export" });
                   }
                 }}
               >
@@ -199,7 +203,6 @@ export default function App({ locale }: { locale?: Locale }) {
           )}
         </main>
       </div>
-      <UnlockNotice />
     </div>
   );
 }

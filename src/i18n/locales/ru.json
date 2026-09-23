@@ -626,5 +626,17 @@
   "data-cleared": "История тренировок очищена.",
   "data-reset": "Локальные данные сброшены.",
   "data-actionFailed": "Не удалось выполнить действие. Последние сохранённые данные не изменились.",
-  "data-importFailed": "Не удалось прочитать копию. Выберите корректный JSON-файл AimForge."
+  "data-importFailed": "Не удалось прочитать копию. Выберите корректный JSON-файл AimForge.",
+  "toast-notifications": "Уведомления",
+  "toast-dismiss": "Закрыть уведомление",
+  "toast-localSaved": "Сохранено на этом устройстве.",
+  "toast-favoriteAdded": "Добавлено в избранное",
+  "toast-favoriteRemoved": "Удалено из избранного",
+  "toast-routineCreated": "Программа создана",
+  "toast-routineUpdated": "Программа обновлена",
+  "toast-routineDeleted": "Программа удалена",
+  "toast-routineStarted": "Программа готова",
+  "toast-sessionSaved": "Сессия сохранена",
+  "toast-shared": "Результат отправлен",
+  "toast-updateInstalled": "Приложение обновлено"
 }

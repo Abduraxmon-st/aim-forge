@@ -17,6 +17,7 @@ import { catalog } from "../../engine/scenarios/catalog";
 import { Heading, Field, Badge, Stat } from "../../components/ui";
 import { useNavigate } from "../../components/router";
 import { num, duration } from "../../i18n";
+import { notify } from "../../components/notifications";
 export default function Routines() {
   const { t } = useTranslation(),
     { db, mutate } = useApp(),
@@ -33,7 +34,7 @@ export default function Routines() {
     steps = active ? expandRoutine(active) : [],
     finished = !!progress && progress.step >= steps.length;
   async function launch(r: Routine, step = 0) {
-    await mutate((d) => {
+    const saved = await mutate((d) => {
       if (step === 0)
         d.routineProgress = {
           routineId: r.id,
@@ -43,8 +44,18 @@ export default function Routines() {
           restUntil: 0,
         };
     });
+    if (!saved) {
+      notify.error(useApp.getState().error ?? "storageUnavailable", {
+        id: "routine-action",
+      });
+      return;
+    }
     const s = expandRoutine(r)[step];
-    if (s)
+    if (s) {
+      notify.success("toast-routineStarted", {
+        id: "routine-action",
+        icon: "routine",
+      });
       nav(
         "/setup/" +
           s.scenario +
@@ -55,6 +66,7 @@ export default function Routines() {
           "&duration=" +
           s.duration,
       );
+    }
   }
   function reorder(index: number, dir: number) {
     if (!editing) return;
@@ -167,13 +179,24 @@ export default function Routines() {
                   <button
                     className="icon-button"
                     aria-label={t("Delete routine")}
-                    onClick={() => {
-                      if (confirm(t("Delete this routine?")))
-                        void mutate((d) => {
+                    onClick={async () => {
+                      if (confirm(t("Delete this routine?"))) {
+                        const saved = await mutate((d) => {
                           d.routines = d.routines.filter((x) => x.id !== r.id);
                           if (d.routineProgress?.routineId === r.id)
                             d.routineProgress = null;
                         });
+                        if (saved)
+                          notify.success("toast-routineDeleted", {
+                            id: "routine-action",
+                            icon: "routine",
+                          });
+                        else
+                          notify.error(
+                            useApp.getState().error ?? "storageUnavailable",
+                            { id: "routine-action" },
+                          );
+                      }
                     }}
                   >
                     <Trash2 size={16} />
@@ -351,20 +374,36 @@ export default function Routines() {
             </button>
             <button
               className="button primary"
-              onClick={() => {
+              onClick={async () => {
                 const valid = routineSchema.safeParse(editing);
                 if (!valid.success) {
                   setError("Check the routine name and step values.");
+                  notify.error("Check the routine name and step values.", {
+                    id: "routine-action",
+                  });
                   return;
                 }
-                void mutate((d) => {
+                let updated = false;
+                const saved = await mutate((d) => {
                   const i = d.routines.findIndex((r) => r.id === editing.id);
+                  updated = i >= 0;
                   if (i >= 0) d.routines[i] = editing;
                   else d.routines.push(editing);
                   if (d.routineProgress?.routineId === editing.id)
                     d.routineProgress = null;
                 });
-                setEditing(null);
+                if (saved) {
+                  setEditing(null);
+                  setError("");
+                  notify.success(
+                    updated ? "toast-routineUpdated" : "toast-routineCreated",
+                    { id: "routine-action", icon: "routine" },
+                  );
+                } else
+                  notify.error(
+                    useApp.getState().error ?? "storageUnavailable",
+                    { id: "routine-action" },
+                  );
               }}
             >
               {t("Save routine")}

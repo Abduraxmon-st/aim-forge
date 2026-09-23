@@ -24,13 +24,13 @@ import DataActions from "./DataActions";
 import { num, decimal } from "../../i18n";
 import { useRouteLocale } from "../../components/router";
 import { splitLocalizedPath } from "../../i18n/languages";
+import { notify } from "../../components/notifications";
 export default function Settings() {
   const routeLocale = useRouteLocale();
   const { t } = useTranslation(),
     { db, settings } = useApp(),
     [overrides, setOverrides] = useState<Partial<SettingsType>>({}),
     [saving, setSaving] = useState(false),
-    [message, setMessage] = useState(""),
     [offline, setOffline] = useState(false),
     [busy, setBusy] = useState(false),
     [update, setUpdate] = useState<ServiceWorkerRegistration | null>(null),
@@ -44,9 +44,22 @@ export default function Settings() {
       if (r?.waiting) setUpdate(r);
     });
   }, []);
-  async function persist(p: Partial<SettingsType>) {
+  async function persist(
+    p: Partial<SettingsType>,
+    redirect?: string,
+    immediate = false,
+  ) {
     const sequence = ++writeSequence.current;
+    const completeDraftValid = settingsSchema.safeParse({
+      ...useApp.getState().db.settings,
+      ...overrides,
+      ...p,
+    }).success;
     setSaving(true);
+    notify.loading("settings-saving", {
+      id: "settings-save",
+      icon: "settings",
+    });
     const saved = await settings(p);
     if (saved)
       setOverrides((current) => {
@@ -58,13 +71,29 @@ export default function Settings() {
       });
     if (sequence === writeSequence.current) {
       setSaving(false);
-      setMessage(
-        saved ? "" : (useApp.getState().error ?? "storageUnavailable"),
-      );
+      const options = {
+        id: "settings-save",
+        icon: "settings" as const,
+        description: "toast-localSaved",
+      };
+      if (!saved)
+        notify.error(useApp.getState().error ?? "storageUnavailable", {
+          id: "settings-save",
+        });
+      else if (redirect)
+        notify.afterNavigation("Settings saved.", redirect, options);
+      else if (!completeDraftValid)
+        notify.info("settings-unsaved", {
+          id: "settings-save",
+          description: "Check the settings values and timezone.",
+        });
+      else if (immediate) notify.success("Settings saved.", options);
+      else notify.saved("Settings saved.", options);
     }
     return saved;
   }
   const patch = (p: Partial<SettingsType>) => {
+    ++writeSequence.current;
     setOverrides((current) => ({ ...current, ...p }));
     // Save valid fields immediately. An unfinished timezone or number must not
     // discard other changes or replace the last valid value in storage.
@@ -73,6 +102,10 @@ export default function Settings() {
         .success
     )
       void persist(p);
+    else {
+      notify.dismiss("settings-save");
+      setSaving(false);
+    }
   };
   const check = (key: keyof SettingsType, label: string) => (
     <label className="check">
@@ -87,10 +120,12 @@ export default function Settings() {
   async function save() {
     const parsed = settingsSchema.safeParse(draft);
     if (!parsed.success) {
-      setMessage("Check the settings values and timezone.");
+      notify.error("Check the settings values and timezone.", {
+        id: "settings-save",
+      });
       return;
     }
-    if (await persist(overrides)) setMessage("Settings saved.");
+    await persist(overrides, undefined, true);
   }
   return (
     <>
@@ -120,11 +155,6 @@ export default function Settings() {
           </span>
         }
       />
-      {message && (
-        <div className="notice" role="status">
-          {t(message)}
-        </div>
-      )}
       <div className="settings-intro">
         <ShieldCheck size={16} />
         <span>{t("settings-autosave")}</span>
@@ -159,14 +189,12 @@ export default function Settings() {
                 const language = e.target.value as SettingsType["language"];
                 if (routeLocale && language !== routeLocale) {
                   setOverrides((current) => ({ ...current, language }));
-                  if (await persist({ language })) {
-                    const path = splitLocalizedPath(
-                      window.location.pathname,
-                    ).path;
-                    window.location.assign(
-                      `/${language}${path === "/" ? "/" : path + "/"}${window.location.search}`,
-                    );
-                  }
+                  const path = splitLocalizedPath(
+                    window.location.pathname,
+                  ).path;
+                  const href = `/${language}${path === "/" ? "/" : path + "/"}${window.location.search}`;
+                  if (await persist({ language }, href))
+                    window.location.assign(href);
                   return;
                 }
                 patch({ language });
@@ -432,7 +460,7 @@ export default function Settings() {
           {check("breakReminder", "Break reminders between rounds")}
         </section>
       </div>
-      <DataActions onReplaced={() => setOverrides({})} onMessage={setMessage} />
+      <DataActions onReplaced={() => setOverrides({})} />
       <section className="panel data-panel">
         <div className="section-heading">
           <div>
@@ -453,12 +481,16 @@ export default function Settings() {
           disabled={busy}
           onClick={async () => {
             setBusy(true);
+            notify.loading("Preparing…", { id: "offline-preparation" });
             try {
               await prepareOffline();
               setOffline(true);
-              setMessage("Offline preparation complete.");
+              notify.success("Offline preparation complete.", {
+                id: "offline-preparation",
+                icon: "download",
+              });
             } catch {
-              setMessage("offlineFailed");
+              notify.error("offlineFailed", { id: "offline-preparation" });
             } finally {
               setBusy(false);
             }
@@ -470,9 +502,17 @@ export default function Settings() {
           <button
             className="button primary"
             onClick={() => {
+              if (!update.waiting) return;
+              notify.loading("Preparing…", { id: "app-update" });
               navigator.serviceWorker.addEventListener(
                 "controllerchange",
-                () => location.reload(),
+                () => {
+                  notify.afterNavigation(
+                    "toast-updateInstalled",
+                    location.pathname,
+                  );
+                  location.reload();
+                },
                 { once: true },
               );
               update.waiting?.postMessage({ type: "ACTIVATE" });
@@ -489,8 +529,10 @@ export default function Settings() {
         </div>
         <button
           className="button primary"
-          disabled={saving}
-          onClick={() => void save()}
+          aria-disabled={saving}
+          onClick={() => {
+            if (!saving) void save();
+          }}
         >
           <Save size={16} />
           {t("Save settings")}

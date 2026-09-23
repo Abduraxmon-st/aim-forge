@@ -32,6 +32,7 @@ import { useRouteLocale } from "../../components/router";
 import { num } from "../../i18n";
 import { download, sessionsCSV } from "../sharing/share";
 import "../../styles/data-actions.css";
+import { notify, ToastViewport } from "../../components/notifications";
 
 const actions = {
   json: {
@@ -91,10 +92,8 @@ function errorKey(error: unknown) {
 
 export default function DataActions({
   onReplaced,
-  onMessage,
 }: {
   onReplaced: () => void;
-  onMessage: (message: string) => void;
 }) {
   const { t } = useTranslation(),
     routeLocale = useRouteLocale();
@@ -126,6 +125,7 @@ export default function DataActions({
 
   function close() {
     if (busyRef.current) return;
+    notify.dismiss("data-dialog-feedback");
     dialog.current?.close();
     setAction(null);
     setImported(null);
@@ -153,9 +153,13 @@ export default function DataActions({
         setReview(repository().read());
       } catch (failure) {
         setError(errorKey(failure));
+        notify.error(errorKey(failure), {
+          id: "data-dialog-feedback",
+          scope: "data-actions",
+        });
       }
     }
-    onMessage("");
+    notify.dismiss("data-result");
     setAction(next);
   }
 
@@ -171,8 +175,16 @@ export default function DataActions({
       if (file.size > 6 * 1024 * 1024) throw new Error("oversized");
       const validated = parseBackup(await file.text());
       setImported(validated);
+      notify.info("data-validBackup", {
+        id: "data-dialog-feedback",
+        scope: "data-actions",
+      });
     } catch {
       setError("Invalid or unsupported backup. Existing data was not changed.");
+      notify.error(
+        "Invalid or unsupported backup. Existing data was not changed.",
+        { id: "data-dialog-feedback", scope: "data-actions" },
+      );
     } finally {
       busyRef.current = false;
       setBusy(false);
@@ -186,6 +198,7 @@ export default function DataActions({
     busyRef.current = true;
     setBusy(true);
     setError("");
+    notify.dismiss("data-dialog-feedback");
     let replacement: Snapshot | undefined;
     let success = "";
     try {
@@ -206,6 +219,10 @@ export default function DataActions({
         const raw = repository().recovery() || repository().raw();
         if (!raw) {
           setError("data-noRecovery");
+          notify.error("data-noRecovery", {
+            id: "data-dialog-feedback",
+            scope: "data-actions",
+          });
           return;
         }
         download(new Blob([raw], { type: "application/json" }), fileName);
@@ -244,24 +261,35 @@ export default function DataActions({
         if (replacement) onReplaced();
       }
     } catch (failure) {
-      setError(
+      const failureKey =
         action === "import"
           ? "Import failed. Existing data was preserved."
-          : errorKey(failure),
-      );
+          : errorKey(failure);
+      setError(failureKey);
+      notify.error(failureKey, {
+        id: "data-dialog-feedback",
+        scope: "data-actions",
+      });
     } finally {
       busyRef.current = false;
       setBusy(false);
     }
     if (success) {
       close();
-      onMessage(success);
       if (
         replacement &&
         routeLocale &&
         replacement.settings.language !== routeLocale
-      )
-        window.location.assign(`/${replacement.settings.language}/settings/`);
+      ) {
+        const href = `/${replacement.settings.language}/settings/`;
+        notify.afterNavigation(success, href);
+        window.location.assign(href);
+      } else
+        notify.success(success, {
+          id: "data-result",
+          description: actions[action].title,
+          icon: isExport(action) ? "download" : "check",
+        });
     }
   }
 
@@ -485,6 +513,7 @@ export default function DataActions({
             )}
           </button>
         </div>
+        <ToastViewport scope="data-actions" locale={routeLocale ?? undefined} />
       </dialog>
     </>
   );

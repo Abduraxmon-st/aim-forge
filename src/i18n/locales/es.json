@@ -626,5 +626,17 @@
   "data-cleared": "Historial de entrenamiento borrado.",
   "data-reset": "Datos locales restablecidos.",
   "data-actionFailed": "No se pudo completar esta acción. Tus últimos datos guardados no han cambiado.",
-  "data-importFailed": "No se pudo leer la copia. Elige un archivo JSON válido de AimForge."
+  "data-importFailed": "No se pudo leer la copia. Elige un archivo JSON válido de AimForge.",
+  "toast-notifications": "Notificaciones",
+  "toast-dismiss": "Cerrar notificación",
+  "toast-localSaved": "Guardado en este dispositivo.",
+  "toast-favoriteAdded": "Añadido a favoritos",
+  "toast-favoriteRemoved": "Eliminado de favoritos",
+  "toast-routineCreated": "Rutina creada",
+  "toast-routineUpdated": "Rutina actualizada",
+  "toast-routineDeleted": "Rutina eliminada",
+  "toast-routineStarted": "Rutina lista",
+  "toast-sessionSaved": "Sesión guardada",
+  "toast-shared": "Resultado compartido",
+  "toast-updateInstalled": "Aplicación actualizada"
 }

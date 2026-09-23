@@ -1,0 +1,199 @@
+[data-sonner-toaster].aimforge-toaster[data-x-position="right"] {
+  --width: 390px !important;
+  width: var(--width);
+  left: auto;
+  right: 24px;
+  font-family: inherit;
+  z-index: 150;
+}
+.aimforge-toast {
+  --toast-accent: #a8a0c9;
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  position: relative;
+  width: 100%;
+  min-height: 82px;
+  padding: 18px 46px 18px 18px;
+  border: 1px solid color-mix(in srgb, var(--toast-accent) 24%, #302d3c);
+  border-radius: 14px;
+  color: #ece8f5;
+  background: linear-gradient(
+    115deg,
+    color-mix(in srgb, var(--toast-accent) 7%, #1b1923),
+    #1a1922 75%
+  );
+  box-shadow:
+    0 12px 42px #0006,
+    inset 0 1px 0 #ffffff04;
+  overflow: hidden;
+  font-family: inherit;
+}
+[data-sonner-toaster].aimforge-toaster [data-sonner-toast] {
+  width: 100%;
+}
+.aimforge-toast::before {
+  content: "";
+  position: absolute;
+  inset: 20px auto 20px 0;
+  width: 2px;
+  border-radius: 2px;
+  background: var(--toast-accent);
+  opacity: 0.65;
+}
+.aimforge-toast[data-kind="success"] {
+  --toast-accent: #91c9ad;
+}
+.aimforge-toast[data-kind="error"] {
+  --toast-accent: #e9a0ac;
+}
+.aimforge-toast[data-kind="loading"] {
+  --toast-accent: #b5a0f4;
+}
+.toast-symbol {
+  flex: 0 0 39px;
+  width: 39px;
+  height: 39px;
+  display: grid;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--toast-accent) 20%, transparent);
+  border-radius: 12px;
+  color: var(--toast-accent);
+  background: color-mix(in srgb, var(--toast-accent) 7%, transparent);
+}
+.toast-copy {
+  min-width: 0;
+  flex: 1;
+}
+.toast-copy strong {
+  display: block;
+  font-size: 0.84rem;
+  line-height: 1.5;
+  font-weight: 580;
+  overflow-wrap: anywhere;
+}
+.toast-copy p {
+  margin-top: 4px;
+  color: #a9a2b7;
+  font-size: 0.73rem;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+.toast-eyebrow {
+  display: block;
+  color: var(--toast-accent);
+  font-size: 0.57rem;
+  line-height: 1.5;
+  letter-spacing: 1.15px;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.toast-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: #c5afe8;
+  font-size: 0.71rem;
+  margin-top: 7px;
+}
+.toast-link:hover {
+  color: #e3d3fb;
+}
+.toast-close {
+  position: absolute;
+  right: 8px;
+  top: 8px;
+  width: 29px;
+  height: 29px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 7px;
+  color: #a19aae;
+  background: transparent;
+  padding: 0;
+}
+.toast-close:hover {
+  color: #eee5fa;
+  background: #ffffff08;
+}
+.toast-close:focus-visible,
+.toast-link:focus-visible {
+  outline: 2px solid #b9a1ef;
+  outline-offset: 2px;
+}
+.toast-spinner {
+  animation: toast-spin 1s linear infinite;
+}
+.aimforge-toast[data-kind="achievement"] {
+  padding-left: 14px;
+  gap: 12px;
+}
+.aimforge-toast .achievement-emblem {
+  margin: -4px 0;
+}
+.aimforge-toast .emblem-spark {
+  animation: toast-spark 3s ease-in-out infinite;
+}
+body:has(.settings-save-bar)
+  [data-sonner-toaster].aimforge-toaster:not(.is-modal) {
+  bottom: calc(108px + env(safe-area-inset-bottom, 0px));
+}
+[data-sonner-toaster].aimforge-toaster.is-modal[data-x-position="right"] {
+  position: absolute;
+  --width: min(390px, calc(100% - 32px)) !important;
+  right: 16px;
+  left: auto;
+  bottom: 88px;
+}
+@keyframes toast-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes toast-spark {
+  0%,
+  100% {
+    opacity: 0.45;
+    transform: scale(0.9);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.12);
+  }
+}
+@media (max-width: 600px) {
+  [data-sonner-toaster].aimforge-toaster[data-x-position="right"] {
+    --width: calc(100vw - 32px) !important;
+    right: 16px;
+    bottom: max(16px, env(safe-area-inset-bottom));
+  }
+  .aimforge-toast {
+    padding: 16px 42px 16px 14px;
+    gap: 11px;
+    border-radius: 12px;
+  }
+  .toast-copy strong {
+    font-size: 0.81rem;
+  }
+  [data-sonner-toaster].aimforge-toaster.is-modal[data-x-position="right"] {
+    --width: calc(100% - 24px) !important;
+    right: 12px;
+    left: auto;
+    bottom: 106px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .aimforge-toaster *,
+  .aimforge-toaster *::before,
+  .aimforge-toaster *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+[data-motion="reduced"] .aimforge-toaster *,
+[data-motion="reduced"] .aimforge-toaster *::before,
+[data-motion="reduced"] .aimforge-toaster *::after {
+  animation: none !important;
+  transition: none !important;
+}

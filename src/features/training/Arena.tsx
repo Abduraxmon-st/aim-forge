@@ -17,6 +17,7 @@ import { useApp } from "../../storage/store";
 import { Link, useNavigate } from "../../components/router";
 import { CrosshairPreview, Badge } from "../../components/ui";
 import { num } from "../../i18n";
+import { notify } from "../../components/notifications";
 export default function Arena() {
   const { t } = useTranslation(),
     nav = useNavigate(),
@@ -55,7 +56,13 @@ export default function Arena() {
         s.routineId = q.get("routine")!;
         s.routineStep = Number(q.get("step")) || 0;
       }
-      await useApp.getState().save(s);
+      const saved = await useApp.getState().save(s);
+      if (!saved)
+        notify.error("Result not saved. Export it before leaving.", {
+          id: "session-save",
+        });
+      else if (!useApp.getState().achievementNotices.length)
+        notify.success("toast-sessionSaved", { id: "session-save" });
       release.current?.();
       release.current = null;
       if (!leaving.current && !disposed) nav("/results/?id=" + s.id);

@@ -11,16 +11,16 @@ This document distinguishes executed automated checks from manual checks that st
 
 ## Final integration checks
 
-On 2026-09-22, Windows, Node.js 22.14.0:
+On 2026-09-23, Windows, Node.js 22.14.0:
 
 | Command              | Result                                                                |
 | -------------------- | --------------------------------------------------------------------- |
 | `npm run type-check` | Passed, strict TypeScript                                             |
 | `npm run lint`       | Passed, no reported lint errors                                       |
 | `npm test`           | **78 passed**, 12 test files                                          |
-| `npm run build`      | Passed; 186 generated Next.js pages/routes, 1,180 precached resources |
+| `npm run build`      | Passed; 186 generated Next.js pages/routes, 1,182 precached resources |
 | `npm run test:seo`   | Passed; 2,615 local artifact checks                                   |
-| `npm run test:e2e`   | **53 passed**, Chromium 153, approximately 4.5 minutes                |
+| `npm run test:e2e`   | **61 passed**, Chromium 153, approximately 7 minutes                  |
 
 The browser suite completes every 2D and 3D mode, checks real Canvas hits and actual WebGL contexts, restores records after reload, checks pause-time exclusion and eligibility, exercises pointer-lock denial and missing WebGL2, validates language/favorites/routine persistence, rejects invalid imports, checks German mobile layouts, plays offline 2D and initializes offline 3D, enforces a single active training tab, and verifies raw-input fallback and context-loss pausing.
 
@@ -42,7 +42,11 @@ The achievements update adds unit coverage for all 25 awards, the five hidden co
 
 All seven Settings data dialogs were visually checked across English, German, Russian, Spanish and Uzbek, including 320-pixel mobile layouts. The 35 combinations produced no horizontal overflow or browser page errors. Dialog bodies scroll independently so confirmation and cancellation stay visible in short windows. Automated data-action checks use isolated profiles and verify downloads, preview-before-replacement, recovery snapshots, cancellation, compaction, history clearing, full reset and failed-write preservation. Localized reset and import tests confirm the restored language route and recovery copy survive navigation. No browser alert or confirm call remains in the Settings feature.
 
-The static export is about 16.74 MiB uncompressed before ZIP packaging, including all language pages and offline resources. This is asset size, not a claimed frame-rate or latency result.
+Toast visual review covered success and modal-error states in all five languages, including 320-pixel widths. The ten cases had no page errors or horizontal overflow; modal feedback remained above the native dialog backdrop and global Settings feedback left the save bar accessible. A real completed round was used to inspect the achievement notification and its badge artwork. Notifications reuse one ID during rapid settings edits, preserve translated success feedback after full language navigation, and do not manufacture success for canceled actions or failed writes.
+
+Toast browser tests verify autosave coalescing, focus preservation, keyboard dismissal, hover-paused expiration, failed-write errors, silent cancellation, modal layering, favorite/routine feedback, clipboard fallback, image downloads and saved reduced-motion preferences. The real-round achievement test checks the earned badge icon and the collection link.
+
+The static export is about 17.34 MiB uncompressed before ZIP packaging, including all language pages and offline resources. This is asset size, not a claimed frame-rate or latency result.
 
 ## Manual checks still required
 

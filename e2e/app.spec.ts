@@ -440,9 +440,7 @@ test("invalid import preserves valid storage", async ({ page }) => {
     mimeType: "application/json",
     buffer: Buffer.from('{"schema":999}'),
   });
-  await expect(
-    page.getByText("Invalid or unsupported backup.", { exact: false }),
-  ).toBeVisible();
+  await expect(page.locator(".data-modal-error")).toBeVisible();
   expect(
     await page.evaluate(() => localStorage.getItem("aimforge:data:v2")),
   ).toBe(before);

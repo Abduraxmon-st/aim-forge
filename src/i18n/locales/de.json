@@ -626,5 +626,17 @@
   "data-cleared": "Trainingsverlauf gelöscht.",
   "data-reset": "Lokale Daten zurückgesetzt.",
   "data-actionFailed": "Diese Aktion konnte nicht abgeschlossen werden. Deine zuletzt gespeicherten Daten sind unverändert.",
-  "data-importFailed": "Die Sicherung konnte nicht gelesen werden. Wähle eine gültige AimForge-JSON-Datei aus."
+  "data-importFailed": "Die Sicherung konnte nicht gelesen werden. Wähle eine gültige AimForge-JSON-Datei aus.",
+  "toast-notifications": "Benachrichtigungen",
+  "toast-dismiss": "Benachrichtigung schließen",
+  "toast-localSaved": "Auf diesem Gerät gespeichert.",
+  "toast-favoriteAdded": "Zu Favoriten hinzugefügt",
+  "toast-favoriteRemoved": "Aus Favoriten entfernt",
+  "toast-routineCreated": "Routine erstellt",
+  "toast-routineUpdated": "Routine aktualisiert",
+  "toast-routineDeleted": "Routine gelöscht",
+  "toast-routineStarted": "Routine bereit",
+  "toast-sessionSaved": "Sitzung gespeichert",
+  "toast-shared": "Ergebnis geteilt",
+  "toast-updateInstalled": "App aktualisiert"
 }

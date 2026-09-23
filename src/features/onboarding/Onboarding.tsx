@@ -5,6 +5,7 @@ import { type Settings } from "../../domain/models";
 import { useApp } from "../../storage/store";
 import { Heading, Field } from "../../components/ui";
 import { Link, useNavigate } from "../../components/router";
+import { notify } from "../../components/notifications";
 export default function Onboarding() {
   const { t } = useTranslation(),
     { db, settings } = useApp(),
@@ -23,11 +24,20 @@ export default function Onboarding() {
         <Field label={t("Language")}>
           <Select
             value={db.settings.language}
-            onChange={(e) =>
-              void settings({
+            onChange={async (e) => {
+              const saved = await settings({
                 language: e.target.value as Settings["language"],
-              })
-            }
+              });
+              if (saved)
+                notify.success("Settings saved.", {
+                  id: "onboarding-save",
+                  icon: "settings",
+                });
+              else
+                notify.error(useApp.getState().error ?? "storageUnavailable", {
+                  id: "onboarding-save",
+                });
+            }}
           >
             {[
               ["en", "English"],
@@ -78,8 +88,18 @@ export default function Onboarding() {
           <button
             className="button primary"
             onClick={async () => {
-              await settings({ nickname: name, input, goal, onboarded: true });
-              nav("/setup/flick-burst");
+              if (
+                await settings({ nickname: name, input, goal, onboarded: true })
+              ) {
+                notify.success("Settings saved.", {
+                  id: "onboarding-save",
+                  icon: "settings",
+                });
+                nav("/setup/flick-burst");
+              } else
+                notify.error(useApp.getState().error ?? "storageUnavailable", {
+                  id: "onboarding-save",
+                });
             }}
           >
             {t("Start training")}

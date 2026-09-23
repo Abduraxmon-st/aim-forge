@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import type { Locale } from "../i18n/languages";
+import { AppToasts } from "../components/notifications";
 import "../styles/app.css";
 import "../styles/controls.css";
 import "../styles/training.css";
@@ -23,7 +24,10 @@ export function LocalizedRoot({
 }) {
   return (
     <html lang={locale} suppressHydrationWarning>
-      <body>{children}</body>
+      <body>
+        {children}
+        <AppToasts locale={locale} />
+      </body>
     </html>
   );
 }

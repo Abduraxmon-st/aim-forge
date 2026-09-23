@@ -626,5 +626,17 @@
   "data-cleared": "Mashq tarixi tozalandi.",
   "data-reset": "Mahalliy ma’lumotlar qayta o‘rnatildi.",
   "data-actionFailed": "Bu amalni bajarib bo‘lmadi. Oxirgi saqlangan ma’lumotlaringiz o‘zgarmadi.",
-  "data-importFailed": "Zaxira nusxasini o‘qib bo‘lmadi. Yaroqli AimForge JSON faylini tanlang."
+  "data-importFailed": "Zaxira nusxasini o‘qib bo‘lmadi. Yaroqli AimForge JSON faylini tanlang.",
+  "toast-notifications": "Bildirishnomalar",
+  "toast-dismiss": "Bildirishnomani yopish",
+  "toast-localSaved": "Shu qurilmada saqlandi.",
+  "toast-favoriteAdded": "Sevimlilarga qo‘shildi",
+  "toast-favoriteRemoved": "Sevimlilardan olib tashlandi",
+  "toast-routineCreated": "Mashqlar dasturi yaratildi",
+  "toast-routineUpdated": "Mashqlar dasturi yangilandi",
+  "toast-routineDeleted": "Mashqlar dasturi o‘chirildi",
+  "toast-routineStarted": "Mashqlar dasturi tayyor",
+  "toast-sessionSaved": "Mashg‘ulot saqlandi",
+  "toast-shared": "Natija ulashildi",
+  "toast-updateInstalled": "Ilova yangilandi"
 }

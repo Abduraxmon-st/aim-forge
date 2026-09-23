@@ -28,12 +28,12 @@ import {
   challengeLink,
 } from "../sharing/share";
 import { expandRoutine } from "../../storage/repository";
+import { notify } from "../../components/notifications";
 export default function Results() {
   const { t } = useTranslation(),
     { db, unsaved, save } = useApp(),
     [id, setId] = useState(""),
-    [share, setShare] = useState(false),
-    [notice, setNotice] = useState("");
+    [share, setShare] = useState(false);
   useEffect(
     () => setId(new URLSearchParams(location.search).get("id") ?? ""),
     [],
@@ -71,9 +71,9 @@ export default function Results() {
   async function copy(value: string) {
     try {
       await navigator.clipboard.writeText(value);
-      setNotice("Copied.");
+      notify.success("Copied.", { id: "result-action" });
     } catch {
-      setNotice("Copy the text below.");
+      notify.info("Copy the text below.", { id: "result-action" });
     }
   }
   return (
@@ -95,18 +95,37 @@ export default function Results() {
           {t("Result not saved. Export it before leaving.")}
           <button
             className="button"
-            onClick={() =>
-              download(
-                new Blob([JSON.stringify(s, null, 2)], {
-                  type: "application/json",
-                }),
-                "aimforge-unsaved-result.json",
-              )
-            }
+            onClick={() => {
+              try {
+                download(
+                  new Blob([JSON.stringify(s, null, 2)], {
+                    type: "application/json",
+                  }),
+                  "aimforge-unsaved-result.json",
+                );
+                notify.success("data-downloadStarted", {
+                  id: "result-action",
+                  icon: "download",
+                });
+              } catch {
+                notify.error("Export failed.", { id: "result-action" });
+              }
+            }}
           >
             {t("Export result")}
           </button>
-          <button className="button" onClick={() => void save(s)}>
+          <button
+            className="button"
+            onClick={async () => {
+              notify.loading("settings-saving", { id: "session-save" });
+              if (await save(s))
+                notify.success("toast-sessionSaved", { id: "session-save" });
+              else
+                notify.error("Result not saved. Export it before leaving.", {
+                  id: "session-save",
+                });
+            }}
+          >
             {t("Retry save")}
           </button>
         </div>
@@ -349,8 +368,16 @@ export default function Results() {
               className="button"
               onClick={() =>
                 void resultImage(s, db.settings.nickname)
-                  .then((b) => download(b, "aimforge-result.png"))
-                  .catch(() => setNotice("Export failed."))
+                  .then((b) => {
+                    download(b, "aimforge-result.png");
+                    notify.success("data-downloadStarted", {
+                      id: "result-action",
+                      icon: "download",
+                    });
+                  })
+                  .catch(() =>
+                    notify.error("Export failed.", { id: "result-action" }),
+                  )
               }
             >
               <Download size={15} />
@@ -362,7 +389,18 @@ export default function Results() {
                 onClick={() =>
                   void navigator
                     .share({ title: "AimForge", text })
-                    .catch(() => setNotice("Copy the text below."))
+                    .then(() =>
+                      notify.success("toast-shared", { id: "result-action" }),
+                    )
+                    .catch((failure: unknown) => {
+                      if (!(
+                        failure instanceof DOMException &&
+                        failure.name === "AbortError"
+                      ))
+                        notify.info("Copy the text below.", {
+                          id: "result-action",
+                        });
+                    })
                 }
               >
                 {t("Share")}
@@ -380,7 +418,6 @@ export default function Results() {
             aria-label={t("Challenge link")}
             value={challengeLink(s.config)}
           />
-          <p role="status">{t(notice)}</p>
         </section>
       )}
     </>
