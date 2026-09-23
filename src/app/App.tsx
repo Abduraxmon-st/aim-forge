@@ -66,10 +66,7 @@ export default function App({ locale }: { locale?: Locale }) {
   useEffect(() => {
     void i18n.changeLanguage(locale ?? db.settings.language);
     document.documentElement.lang = locale ?? db.settings.language;
-    document.documentElement.dataset.motion = db.settings.reducedMotion
-      ? "reduced"
-      : "normal";
-  }, [locale, db.settings.language, db.settings.reducedMotion]);
+  }, [locale, db.settings.language]);
   useEffect(() => {
     main.current?.focus({ preventScroll: true });
     window.scrollTo(0, 0);
@@ -186,7 +183,13 @@ export default function App({ locale }: { locale?: Locale }) {
             }
           >
             {ready ? (
-              page
+              path === "/arena" ? (
+                page
+              ) : (
+                <div className="page-transition" key={path}>
+                  {page}
+                </div>
+              )
             ) : (
               <div className="empty panel" role="status">
                 {t("Loading your training space…")}

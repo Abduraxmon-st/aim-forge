@@ -98,6 +98,7 @@ function usePopover(
         top: flip ? rect.top - 8 : rect.bottom + 8,
         maxHeight: Math.max(100, flip ? rect.top - 20 : below),
         transform: flip ? "translateY(-100%)" : undefined,
+        transformOrigin: flip ? "bottom left" : "top left",
       });
     };
     const outside = (event: PointerEvent) => {
@@ -415,7 +416,11 @@ export function DatePicker({
         <span className="control-value">
           {value ? dateFormat.format(parseDate(value)) : label}
         </span>
-        <ChevronDown size={14} aria-hidden="true" />
+        <ChevronDown
+          size={14}
+          aria-hidden="true"
+          className={"control-chevron " + (open ? "open" : "")}
+        />
       </button>
       {open &&
         createPortal(
@@ -489,6 +494,7 @@ export function DatePicker({
             </div>
             <div
               className="calendar-days"
+              key={`${view.getFullYear()}-${view.getMonth()}`}
               role="group"
               aria-label={t("control-chooseDate")}
             >

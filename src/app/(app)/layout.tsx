@@ -1,9 +1,11 @@
 import type { Metadata, Viewport } from "next";
 import { AppToasts } from "../../components/notifications";
+import { MotionPreferences } from "../../components/MotionPreferences";
 import "../../styles/app.css";
 import "../../styles/controls.css";
 import "../../styles/training.css";
 import "../../styles/achievements.css";
+import "../../styles/motion.css";
 export const metadata: Metadata = {
   title: "AimForge — Your training ground",
   description:
@@ -19,9 +21,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" data-motion="pending" suppressHydrationWarning>
       <body>
         {children}
+        <MotionPreferences />
         <AppToasts />
       </body>
     </html>

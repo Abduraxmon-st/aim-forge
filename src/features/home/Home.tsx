@@ -8,6 +8,7 @@ import {
   Move,
   ArrowUpRight,
   CalendarDays,
+  Plus,
 } from "lucide-react";
 import { Link } from "../../components/router";
 import { useApp } from "../../storage/store";
@@ -60,6 +61,10 @@ export default function Home() {
             <span className="preview-circle one" />
             <span className="preview-circle two" />
             <span className="preview-circle three" />
+            <Plus size={16} className="preview-plus plus-one" />
+            <Plus size={12} className="preview-plus plus-two" />
+            <span className="preview-dot dot-one" />
+            <span className="preview-dot dot-two" />
             <Crosshair size={29} />
             <span className="preview-label">{t("flick-burst")} / 001</span>
           </div>

@@ -48,7 +48,9 @@ Toast browser tests verify autosave coalescing, focus preservation, keyboard dis
 
 The subsequent favorite-order update passed the existing library component test, targeted lint/format checks and a fresh production build. An isolated browser check verified immediate favorite-first ordering, stable catalog order within groups, search and dimension filtering, removal, reload persistence and the favorites-only filter, with no browser errors.
 
-The static export is about 17.34 MiB uncompressed before ZIP packaging, including all language pages and offline resources. This is asset size, not a claimed frame-rate or latency result.
+The interface-motion update passed a fresh production build, lint/format checks, four existing control/library component tests and 11 relevant browser tests, including a completed real 2D round. An isolated review checked 32 app/public pages across five languages for page entry and horizontal overflow, header artwork movement, client navigation, upward/downward dropdown positioning, mobile calendar display, saved/system reduced motion and public content without JavaScript. It reported no browser errors. The grid test now waits for its entrance to finish before measuring card alignment. Desktop header/dropdown and mobile calendar captures were visually inspected.
+
+The static export is about 17.61 MiB uncompressed before ZIP packaging, including all language pages and offline resources. This is asset size, not a claimed frame-rate or latency result.
 
 ## Manual checks still required
 

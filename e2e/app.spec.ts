@@ -143,6 +143,14 @@ test("training cards have two columns, real screenshots and working carousel con
   await page.goto("/training/");
   const cards = page.locator(".training-card");
   await expect(cards).toHaveCount(10);
+  // Measure the settled grid after its staggered entrance, not mid-transition.
+  await cards.evaluateAll((elements) =>
+    Promise.all(
+      elements.flatMap((element) =>
+        element.getAnimations().map((animation) => animation.finished),
+      ),
+    ),
+  );
   const first = await cards.nth(0).boundingBox(),
     second = await cards.nth(1).boundingBox();
   expect(first!.y).toBe(second!.y);

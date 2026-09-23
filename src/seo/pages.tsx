@@ -134,7 +134,9 @@ function PublicShell({
           </nav>
         </header>
         <main id="content" className="public-content">
-          {children}
+          <div className="page-transition" key={path}>
+            {children}
+          </div>
           <footer>
             <a href={`/${locale}/training/`}>
               {dictionary["Built for focused practice."]}
