@@ -46,6 +46,8 @@ Toast visual review covered success and modal-error states in all five languages
 
 Toast browser tests verify autosave coalescing, focus preservation, keyboard dismissal, hover-paused expiration, failed-write errors, silent cancellation, modal layering, favorite/routine feedback, clipboard fallback, image downloads and saved reduced-motion preferences. The real-round achievement test checks the earned badge icon and the collection link.
 
+The subsequent favorite-order update passed the existing library component test, targeted lint/format checks and a fresh production build. An isolated browser check verified immediate favorite-first ordering, stable catalog order within groups, search and dimension filtering, removal, reload persistence and the favorites-only filter, with no browser errors.
+
 The static export is about 17.34 MiB uncompressed before ZIP packaging, including all language pages and offline resources. This is asset size, not a claimed frame-rate or latency result.
 
 ## Manual checks still required

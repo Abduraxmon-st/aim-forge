@@ -17,15 +17,21 @@ export default function Library() {
     [difficulty, setDifficulty] = useState("beginner"),
     [favorites, setFavorites] = useState(false);
   const locale = useRouteLocale() ?? db.settings.language;
-  const items = catalog.filter(
-    (s) =>
-      (dim === "all" || s.dimension === dim) &&
-      (skill === "all" || s.skill === skill) &&
-      (!favorites || db.favorites.includes(s.id)) &&
-      (t(s.id) + " " + t(s.id + "Desc"))
-        .toLowerCase()
-        .includes(q.toLowerCase()),
-  );
+  const items = catalog
+    .filter(
+      (s) =>
+        (dim === "all" || s.dimension === dim) &&
+        (skill === "all" || s.skill === skill) &&
+        (!favorites || db.favorites.includes(s.id)) &&
+        (t(s.id) + " " + t(s.id + "Desc"))
+          .toLowerCase()
+          .includes(q.toLowerCase()),
+    )
+    .sort(
+      (a, b) =>
+        Number(db.favorites.includes(b.id)) -
+        Number(db.favorites.includes(a.id)),
+    );
   return (
     <>
       <Heading
